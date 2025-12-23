@@ -1,38 +1,41 @@
-import React from 'react'
-import { useSelector, useDispatch} from 'react-redux'
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { removeFromCart, updateQuantity } from '../redux/slices/cartSlice';
 import { Link } from 'react-router-dom';
 
 function CartPage() {
-    const dispatch = useDispatch();
-    const cartItems = useSelector(state=> state.cart.items);
-    const totalAmount = useSelector(state=> state.cart.totalAmount);
+  const dispatch = useDispatch();
+  const cartItems = useSelector(state => state.cart.items);
+  const totalAmount = useSelector(state => state.cart.totalAmount);
 
-    const handleRemove = (id)=>{
-        dispatch(removeFromCart(id));
+  const handleRemove = (id) => {
+    dispatch(removeFromCart(id));
+  };
+
+  const handleUpdateQuantity = (id, newQuantity) => {
+    if (newQuantity > 0) {
+      dispatch(updateQuantity({ id, quantity: newQuantity }));
     }
+  };
 
-    const handleUpdateQuantity=(id,newQuantity)=>{
-        if(newQuantity>0){
-            dispatch(updateQuantity({id, quantity: newQuantity}));
-        }
-    }
-
-    // Empty Cart state
-    if(cartItems.length === 0){
-        return(
-            <div className="container mx-auto px-4 py-8 text-center">
-                <div className="text-6xl mb-4">🛒</div>
-                <h2 className='text-2xl font-bold mb-2'>Your cart is empty.</h2>
-                <p className='text-gray-600 mb-6'>Add some items to get started!</p>
-                <Link to="/" className="inline-block bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition">Continue shoppping</Link>
-
-            </div>
-        )
-    }
+  if (cartItems.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <div className="text-6xl mb-4">🛒</div>
+        <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
+        <p className="text-gray-600 mb-6">Add some luxury items to get started!</p>
+        <Link 
+          to="/" 
+          className="inline-block bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition"
+        >
+          Continue Shopping
+        </Link>
+      </div>
+    );
+  }
 
   return (
-   <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -43,14 +46,24 @@ function CartPage() {
               key={item.id} 
               className="bg-white rounded-lg shadow-md p-6 flex items-center gap-6"
             >
-              {/* Product Image */}
-              <div className="text-5xl">{item.image}</div>
+              {/* Product Image - FIXED */}
+              <div className="w-20 h-20 flex-shrink-0">
+                {item.image && item.image.startsWith('http') ? (
+                  <img 
+                    src={item.image} 
+                    alt={item.title || item.name}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="text-5xl">{item.image}</div>
+                )}
+              </div>
 
               {/* Product Info */}
               <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-1">{item.name}</h3>
+                <h3 className="text-lg font-semibold mb-1">{item.title || item.name}</h3>
                 <p className="text-gray-600 text-sm mb-2">{item.category}</p>
-                <p className="text-lg font-bold">₹{item.price.toLocaleString()}</p>
+                <p className="text-lg font-bold">${item.price.toFixed(2)}</p>
               </div>
 
               {/* Quantity Controls */}
@@ -72,7 +85,7 @@ function CartPage() {
 
               {/* Item Total */}
               <div className="text-right">
-                <p className="font-bold text-lg">₹{item.totalPrice.toLocaleString()}</p>
+                <p className="font-bold text-lg">${item.totalPrice.toFixed(2)}</p>
               </div>
 
               {/* Remove Button */}
@@ -89,12 +102,12 @@ function CartPage() {
         {/* Order Summary */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
             
             <div className="space-y-3 mb-6">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="font-semibold">₹{totalAmount.toLocaleString()}</span>
+                <span className="font-semibold">${totalAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Shipping</span>
@@ -102,13 +115,16 @@ function CartPage() {
               </div>
               <div className="border-t pt-3 flex justify-between">
                 <span className="text-lg font-bold">Total</span>
-                <span className="text-lg font-bold">₹{totalAmount.toLocaleString()}</span>
+                <span className="text-lg font-bold">${totalAmount.toFixed(2)}</span>
               </div>
             </div>
 
-            <button className="w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition font-semibold mb-3">
+            <Link 
+              to="/profile"
+              className="block w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition font-semibold mb-3 text-center"
+            >
               Proceed to Checkout
-            </button>
+            </Link>
 
             <Link 
               to="/" 
@@ -123,4 +139,5 @@ function CartPage() {
   );
 }
 
-export default CartPage
+export default CartPage;
+
