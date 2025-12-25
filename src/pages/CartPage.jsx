@@ -1,12 +1,14 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { removeFromCart, updateQuantity } from '../redux/slices/cartSlice';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function CartPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const cartItems = useSelector(state => state.cart.items);
   const totalAmount = useSelector(state => state.cart.totalAmount);
+  const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
 
   const handleRemove = (id) => {
     dispatch(removeFromCart(id));
@@ -15,6 +17,15 @@ function CartPage() {
   const handleUpdateQuantity = (id, newQuantity) => {
     if (newQuantity > 0) {
       dispatch(updateQuantity({ id, quantity: newQuantity }));
+    }
+  };
+
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      // Redirect to login with return URL
+      navigate('/login?redirect=checkout');
+    } else {
+      navigate('/checkout');
     }
   };
 
@@ -46,7 +57,7 @@ function CartPage() {
               key={item.id} 
               className="bg-white rounded-lg shadow-md p-6 flex items-center gap-6"
             >
-              {/* Product Image - FIXED */}
+              {/* Product Image */}
               <div className="w-20 h-20 flex-shrink-0">
                 {item.image && item.image.startsWith('http') ? (
                   <img 
@@ -119,12 +130,12 @@ function CartPage() {
               </div>
             </div>
 
-            <Link 
-              to="/profile"
-              className="block w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition font-semibold mb-3 text-center"
+            <button 
+              onClick={handleCheckout}
+              className="w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition font-semibold mb-3"
             >
-              Proceed to Checkout
-            </Link>
+              {isAuthenticated ? 'Proceed to Checkout' : 'Login to Checkout'}
+            </button>
 
             <Link 
               to="/" 
@@ -140,4 +151,3 @@ function CartPage() {
 }
 
 export default CartPage;
-
