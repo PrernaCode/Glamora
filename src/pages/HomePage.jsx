@@ -3,24 +3,25 @@ import { useDispatch } from 'react-redux';
 import { addToCart } from '../redux/slices/cartSlice';
 import { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery } from '../redux/slices/productsApi';
 import { Link } from 'react-router-dom';
+import { useToast } from '../components/Toast';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 
-// Memoized Product Card Component
 const ProductCard = memo(({ product, onAddToCart }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300">
       <Link to={`/product/${product.id}`}>
         <img
           src={product.image}
           alt={product.title}
           loading="lazy"
-          className="w-full h-48 object-contain p-4 hover:scale-105 transition cursor-pointer"
+          className="w-full h-48 object-contain p-4 hover:scale-105 transition-transform duration-300 cursor-pointer"
         />
       </Link>
 
       <div className="p-4">
         <p className="text-xs text-gray-500 uppercase mb-1">{product.category}</p>
         <Link to={`/product/${product.id}`}>
-          <h3 className="text-lg font-semibold mb-2 hover:text-gray-600 cursor-pointer line-clamp-2">
+          <h3 className="text-lg font-semibold mb-2 hover:text-gray-600 cursor-pointer line-clamp-2 transition">
             {product.title}
           </h3>
         </Link>
@@ -43,6 +44,7 @@ ProductCard.displayName = 'ProductCard';
 
 function HomePage() {
   const dispatch = useDispatch();
+  const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   
@@ -60,25 +62,19 @@ function HomePage() {
   const products = selectedCategory === 'all' ? allProducts : categoryProducts;
   const isLoading = selectedCategory === 'all' ? loadingAll : loadingCategory;
 
-  // Memoized filtered products
   const filteredProducts = useMemo(() => {
     return products?.filter(product =>
       product.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [products, searchTerm]);
 
-  // Memoized add to cart handler
   const handleAddToCart = useCallback((product) => {
     dispatch(addToCart(product));
-  }, [dispatch]);
+    addToast(`${product.title.substring(0, 30)}... added to cart`, 'success');
+  }, [dispatch, addToast]);
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <div className="animate-spin text-6xl mb-4">⏳</div>
-        <p className="text-xl text-gray-600">Loading luxury products...</p>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   return (
@@ -92,13 +88,15 @@ function HomePage() {
             placeholder="Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition"
+            aria-label="Search products"
           />
           
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white transition"
+            aria-label="Filter by category"
           >
             <option value="all">All Categories</option>
             {categories?.map(category => (
@@ -111,20 +109,28 @@ function HomePage() {
       </div>
 
       {(selectedCategory !== 'all' || searchTerm) && (
-        <div className="mb-4 flex gap-2 items-center">
+        <div className="mb-4 flex gap-2 items-center flex-wrap">
           <span className="text-sm text-gray-600">Active filters:</span>
           {selectedCategory !== 'all' && (
-            <span className="bg-black text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+            <span className="bg-black text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 transition hover:bg-gray-800">
               {selectedCategory}
-              <button onClick={() => setSelectedCategory('all')} className="hover:text-gray-300">
+              <button 
+                onClick={() => setSelectedCategory('all')} 
+                className="hover:text-gray-300"
+                aria-label="Remove category filter"
+              >
                 ×
               </button>
             </span>
           )}
           {searchTerm && (
-            <span className="bg-black text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+            <span className="bg-black text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 transition hover:bg-gray-800">
               "{searchTerm}"
-              <button onClick={() => setSearchTerm('')} className="hover:text-gray-300">
+              <button 
+                onClick={() => setSearchTerm('')} 
+                className="hover:text-gray-300"
+                aria-label="Remove search filter"
+              >
                 ×
               </button>
             </span>
@@ -148,13 +154,14 @@ function HomePage() {
 
       {filteredProducts?.length === 0 && (
         <div className="text-center py-16">
-          <p className="text-xl text-gray-600">No products found</p>
+          <div className="text-6xl mb-4">🔍</div>
+          <p className="text-xl text-gray-600 mb-4">No products found</p>
           <button
             onClick={() => {
               setSearchTerm('');
               setSelectedCategory('all');
             }}
-            className="mt-4 text-blue-600 hover:underline"
+            className="mt-4 text-blue-600 hover:underline transition"
           >
             Clear all filters
           </button>

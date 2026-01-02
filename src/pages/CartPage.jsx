@@ -2,16 +2,19 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { removeFromCart, updateQuantity } from '../redux/slices/cartSlice';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 
 function CartPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const cartItems = useSelector(state => state.cart.items);
   const totalAmount = useSelector(state => state.cart.totalAmount);
   const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
 
   const handleRemove = (id) => {
     dispatch(removeFromCart(id));
+    addToast('Item removed from cart', 'info');
   };
 
   const handleUpdateQuantity = (id, newQuantity) => {
@@ -22,7 +25,6 @@ function CartPage() {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      // Redirect to login with return URL
       navigate('/login?redirect=checkout');
     } else {
       navigate('/checkout');
@@ -55,57 +57,123 @@ function CartPage() {
           {cartItems.map(item => (
             <div 
               key={item.id} 
-              className="bg-white rounded-lg shadow-md p-6 flex items-center gap-6"
+              className="bg-white rounded-lg shadow-md p-4 md:p-6"
             >
-              {/* Product Image */}
-              <div className="w-20 h-20 flex-shrink-0">
-                {item.image && item.image.startsWith('http') ? (
-                  <img 
-                    src={item.image} 
-                    alt={item.title || item.name}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="text-5xl">{item.image}</div>
-                )}
+              {/* Mobile Layout: Stacked */}
+              <div className="flex flex-col md:hidden space-y-4">
+                {/* Top: Image + Info */}
+                <div className="flex gap-4">
+                  <div className="w-20 h-20 flex-shrink-0">
+                    {item.image && item.image.startsWith('http') ? (
+                      <img 
+                        src={item.image} 
+                        alt={item.title || item.name}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-5xl">{item.image}</div>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-semibold mb-1 truncate">
+                      {item.title || item.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-2">{item.category}</p>
+                    <p className="text-lg font-bold">${item.price.toFixed(2)}</p>
+                  </div>
+                </div>
+
+                {/* Bottom: Quantity + Total + Remove */}
+                <div className="flex items-center justify-between">
+                  {/* Quantity Controls */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                      className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition"
+                      aria-label="Decrease quantity"
+                    >
+                      -
+                    </button>
+                    <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                    <button
+                      onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                      className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Item Total */}
+                  <div className="font-bold text-lg">${item.totalPrice.toFixed(2)}</div>
+
+                  {/* Remove Button */}
+                  <button
+                    onClick={() => handleRemove(item.id)}
+                    className="text-red-500 hover:text-red-700 text-sm font-medium"
+                    aria-label="Remove item"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
 
-              {/* Product Info */}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-1">{item.title || item.name}</h3>
-                <p className="text-gray-600 text-sm mb-2">{item.category}</p>
-                <p className="text-lg font-bold">${item.price.toFixed(2)}</p>
-              </div>
+              {/* Desktop Layout: Row */}
+              <div className="hidden md:flex items-center gap-6">
+                {/* Product Image */}
+                <div className="w-20 h-20 flex-shrink-0">
+                  {item.image && item.image.startsWith('http') ? (
+                    <img 
+                      src={item.image} 
+                      alt={item.title || item.name}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-5xl">{item.image}</div>
+                  )}
+                </div>
 
-              {/* Quantity Controls */}
-              <div className="flex items-center gap-3">
+                {/* Product Info */}
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-1">{item.title || item.name}</h3>
+                  <p className="text-gray-600 text-sm mb-2">{item.category}</p>
+                  <p className="text-lg font-bold">${item.price.toFixed(2)}</p>
+                </div>
+
+                {/* Quantity Controls */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                    className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition"
+                    aria-label="Decrease quantity"
+                  >
+                    -
+                  </button>
+                  <span className="w-12 text-center font-semibold">{item.quantity}</span>
+                  <button
+                    onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                    className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition"
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Item Total */}
+                <div className="text-right w-24">
+                  <p className="font-bold text-lg">${item.totalPrice.toFixed(2)}</p>
+                </div>
+
+                {/* Remove Button */}
                 <button
-                  onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                  className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition"
+                  onClick={() => handleRemove(item.id)}
+                  className="text-red-500 hover:text-red-700 text-sm font-medium"
+                  aria-label="Remove item"
                 >
-                  -
-                </button>
-                <span className="w-12 text-center font-semibold">{item.quantity}</span>
-                <button
-                  onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                  className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition"
-                >
-                  +
+                  Remove
                 </button>
               </div>
-
-              {/* Item Total */}
-              <div className="text-right">
-                <p className="font-bold text-lg">${item.totalPrice.toFixed(2)}</p>
-              </div>
-
-              {/* Remove Button */}
-              <button
-                onClick={() => handleRemove(item.id)}
-                className="text-red-500 hover:text-red-700 text-sm font-medium"
-              >
-                Remove
-              </button>
             </div>
           ))}
         </div>

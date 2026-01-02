@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../redux/slices/authSlice';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 
 function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const { isAuthenticated, loading, error } = useSelector(state => state.auth);
   
   const [formData, setFormData] = useState({
@@ -15,9 +17,16 @@ function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      addToast('Login successful!', 'success');
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, addToast]);
+
+  useEffect(() => {
+    if (error) {
+      addToast(error, 'error');
+    }
+  }, [error, addToast]);
 
   useEffect(() => {
     return () => {
@@ -44,12 +53,6 @@ function LoginPage() {
           <h2 className="text-3xl font-bold">Welcome Back</h2>
           <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

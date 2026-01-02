@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { signupUser, clearError } from '../redux/slices/authSlice';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 
 function SignupPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const { isAuthenticated, loading, error } = useSelector(state => state.auth);
   
   const [formData, setFormData] = useState({
@@ -18,9 +20,16 @@ function SignupPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      addToast('Account created successfully!', 'success');
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, addToast]);
+
+  useEffect(() => {
+    if (error) {
+      addToast(error, 'error');
+    }
+  }, [error, addToast]);
 
   useEffect(() => {
     return () => {
@@ -40,19 +49,21 @@ function SignupPage() {
     e.preventDefault();
     setLocalError('');
 
-    // Validation
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
       setLocalError('Please fill in all fields');
+      addToast('Please fill in all fields', 'error');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
       setLocalError('Passwords do not match');
+      addToast('Passwords do not match', 'error');
       return;
     }
 
     if (formData.password.length < 6) {
       setLocalError('Password must be at least 6 characters');
+      addToast('Password must be at least 6 characters', 'error');
       return;
     }
 
@@ -66,12 +77,6 @@ function SignupPage() {
           <h2 className="text-3xl font-bold">Create Account</h2>
           <p className="text-gray-600 mt-2">Join Glamora today</p>
         </div>
-
-        {(error || localError) && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {localError || error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
