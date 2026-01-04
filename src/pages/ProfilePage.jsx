@@ -1,18 +1,28 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../redux/slices/authSlice';
+import { clearCart, loadUserCart } from '../redux/slices/cartSlice';
 import { useNavigate, Link } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 
 function ProfilePage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const user = useSelector(state => state.auth.user);
   const cartItems = useSelector(state => state.cart.items);
   const totalAmount = useSelector(state => state.cart.totalAmount);
   const orders = useSelector(state => state.orders.orders);
 
   const handleLogout = async () => {
+    // DON'T delete user's cart from localStorage (keep it for next login)
+    // Just clear Redux state and switch to guest cart
+    
     await dispatch(logoutUser());
+    dispatch(clearCart());
+    dispatch(loadUserCart(null)); // Load guest cart
+    
+    addToast('Logged out successfully', 'success');
     navigate('/');
   };
 
@@ -166,3 +176,5 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
+
+

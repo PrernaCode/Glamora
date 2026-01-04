@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { signupUser, clearError } from '../redux/slices/authSlice';
+import { clearCart, loadUserCart } from '../redux/slices/cartSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 
@@ -8,7 +9,7 @@ function SignupPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const { isAuthenticated, loading, error } = useSelector(state => state.auth);
+  const { isAuthenticated, loading, error, user } = useSelector(state => state.auth);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -19,11 +20,16 @@ function SignupPage() {
   const [localError, setLocalError] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
+      // Clear guest cart, load new user's empty cart
+      dispatch(clearCart());
+      localStorage.removeItem('cart_guest');
+      dispatch(loadUserCart(user.id));
+      
       addToast('Account created successfully!', 'success');
       navigate('/');
     }
-  }, [isAuthenticated, navigate, addToast]);
+  }, [isAuthenticated, user, navigate, addToast, dispatch]);
 
   useEffect(() => {
     if (error) {

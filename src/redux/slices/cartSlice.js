@@ -1,9 +1,15 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Load cart from localStorage on app start
-const loadCartFromStorage = () => {
+// Helper to get cart key based on user
+const getCartKey = (userId) => {
+  return userId ? `cart_${userId}` : 'cart_guest';
+};
+
+// Load cart from localStorage
+const loadCartFromStorage = (userId = null) => {
   try {
-    const savedCart = localStorage.getItem('cart');
+    const cartKey = getCartKey(userId);
+    const savedCart = localStorage.getItem(cartKey);
     if (savedCart) {
       return JSON.parse(savedCart);
     }
@@ -71,8 +77,18 @@ const cartSlice = createSlice({
       state.totalQuantity = 0;
       state.totalAmount = 0;
     },
+
+    // Load user-specific cart
+    loadUserCart: (state, action) => {
+      const userId = action.payload;
+      const userCart = loadCartFromStorage(userId);
+      state.items = userCart.items;
+      state.totalQuantity = userCart.totalQuantity;
+      state.totalAmount = userCart.totalAmount;
+    },
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart } = cartSlice.actions;
+export const { addToCart, removeFromCart, updateQuantity, clearCart, loadUserCart } = cartSlice.actions;
 export default cartSlice.reducer;
+export { getCartKey }; // Export for middleware
