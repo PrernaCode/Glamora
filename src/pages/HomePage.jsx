@@ -5,6 +5,7 @@ import { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQue
 import { Link } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import useDebounce from '../hooks/useDebounce';
 
 const ProductCard = memo(({ product, onAddToCart }) => {
   return (
@@ -48,6 +49,9 @@ function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   
+  // Debounce search term with 500ms delay
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  
   const { data: categories } = useGetCategoriesQuery();
   
   const { data: allProducts, isLoading: loadingAll } = useGetProductsQuery(undefined, {
@@ -62,11 +66,14 @@ function HomePage() {
   const products = selectedCategory === 'all' ? allProducts : categoryProducts;
   const isLoading = selectedCategory === 'all' ? loadingAll : loadingCategory;
 
+  // Filter products using DEBOUNCED search term
   const filteredProducts = useMemo(() => {
-    return products?.filter(product =>
-      product.title.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = products?.filter(product =>
+      product.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-  }, [products, searchTerm]);
+    
+    return filtered;
+  }, [products, debouncedSearchTerm]); // Using debouncedSearchTerm instead of searchTerm
 
   const handleAddToCart = useCallback((product) => {
     dispatch(addToCart(product));
@@ -108,7 +115,7 @@ function HomePage() {
         </div>
       </div>
 
-      {(selectedCategory !== 'all' || searchTerm) && (
+      {(selectedCategory !== 'all' || debouncedSearchTerm) && (
         <div className="mb-4 flex gap-2 items-center flex-wrap">
           <span className="text-sm text-gray-600">Active filters:</span>
           {selectedCategory !== 'all' && (
@@ -123,9 +130,9 @@ function HomePage() {
               </button>
             </span>
           )}
-          {searchTerm && (
+          {debouncedSearchTerm && (
             <span className="bg-black text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 transition hover:bg-gray-800">
-              "{searchTerm}"
+              "{debouncedSearchTerm}"
               <button 
                 onClick={() => setSearchTerm('')} 
                 className="hover:text-gray-300"
