@@ -14,6 +14,7 @@ const SignupPage = lazy(() => import('./pages/SignupPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function App() {
@@ -30,23 +31,24 @@ function App() {
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
-                <Route 
-                  path="/profile" 
+                <Route
+                  path="/profile"
                   element={
                     <ProtectedRoute>
                       <ProfilePage />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/checkout" 
+                <Route
+                  path="/checkout"
                   element={
                     <ProtectedRoute>
                       <CheckoutPage />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
                 <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>

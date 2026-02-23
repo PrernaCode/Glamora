@@ -7,18 +7,62 @@ const checkSession = async () => {
   return session;
 };
 
+// Async thunk to fetch user profile
+export const fetchProfile = createAsyncThunk(
+  'auth/fetchProfile',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Async thunk to update user profile
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert({
+          ...profileData,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 // Async thunk for login
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password }, { dispatch, rejectWithValue }) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+
       if (error) throw error;
-      
+
+      // Fetch profile after successful login
+      await dispatch(fetchProfile(data.user.id));
+
       return {
         user: data.user,
         token: data.session.access_token,
@@ -32,7 +76,7 @@ export const loginUser = createAsyncThunk(
 // Async thunk for signup
 export const signupUser = createAsyncThunk(
   'auth/signup',
-  async ({ email, password, name }, { rejectWithValue }) => {
+  async ({ email, password, name }, { dispatch, rejectWithValue }) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -43,9 +87,14 @@ export const signupUser = createAsyncThunk(
           }
         }
       });
-      
+
       if (error) throw error;
-      
+
+      // Profile is created by DB trigger, but we fetch it to be sure
+      if (data.user) {
+        await dispatch(fetchProfile(data.user.id));
+      }
+
       return {
         user: data.user,
         token: data.session?.access_token || null,
@@ -72,6 +121,7 @@ export const logoutUser = createAsyncThunk(
 // Initial state
 const initialState = {
   user: null,
+  profile: null,
   token: null,
   isAuthenticated: false,
   loading: false,
@@ -87,13 +137,24 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.isAuthenticated = !!action.payload.user;
     },
+    setProfile: (state, action) => {
+      state.profile = action.payload;
+    },
     clearError: (state) => {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
-    // Login
     builder
+      // Fetch Profile
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.profile = action.payload;
+      })
+      // Update Profile
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.profile = action.payload;
+      })
+      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -108,10 +169,8 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
-    
-    // Signup
-    builder
+      })
+      // Signup
       .addCase(signupUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -120,18 +179,17 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
-        state.isAuthenticated = true;
+        state.isAuthenticated = !!action.payload.user;
         state.error = null;
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
-    
-    // Logout
-    builder
+      })
+      // Logout
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
+        state.profile = null;
         state.token = null;
         state.isAuthenticated = false;
         state.loading = false;
@@ -140,7 +198,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, clearError } = authSlice.actions;
+export const { setUser, setProfile, clearError } = authSlice.actions;
 export default authSlice.reducer;
 
 // Helper to check session on app load
@@ -151,5 +209,6 @@ export const initializeAuth = () => async (dispatch) => {
       user: session.user,
       token: session.access_token,
     }));
+    await dispatch(fetchProfile(session.user.id));
   }
 };

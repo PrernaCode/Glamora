@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../redux/slices/authSlice';
-import { loadUserCart } from '../redux/slices/cartSlice';
+import { loadUserCart, fetchCart, mergeGuestCart } from '../redux/slices/cartSlice';
+import { fetchWishlist } from '../redux/slices/wishlistSlice';
+import { fetchOrders } from '../redux/slices/ordersSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 
@@ -10,19 +12,32 @@ function LoginPage() {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const { isAuthenticated, loading, error, user } = useSelector(state => state.auth);
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Load user-specific cart
-      dispatch(loadUserCart(user.id));
-      addToast('Login successful!', 'success');
-      navigate('/');
-    }
+    const syncData = async () => {
+      if (isAuthenticated && user) {
+        const guestCart = JSON.parse(localStorage.getItem('cart_guest') || '{"items":[]}');
+
+        if (guestCart.items.length > 0) {
+          await dispatch(mergeGuestCart({ userId: user.id, guestItems: guestCart.items }));
+          localStorage.removeItem('cart_guest');
+        } else {
+          await dispatch(fetchCart(user.id));
+        }
+
+        await dispatch(fetchWishlist(user.id));
+        await dispatch(fetchOrders(user.id));
+
+        addToast('Login successful!', 'success');
+        navigate('/');
+      }
+    };
+    syncData();
   }, [isAuthenticated, user, navigate, addToast, dispatch]);
 
   useEffect(() => {

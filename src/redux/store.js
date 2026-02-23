@@ -1,21 +1,23 @@
-import {configureStore} from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import cartReducer from './slices/cartSlice';
 import authReducer from './slices/authSlice';
 import { productsApi } from './slices/productsApi';
 import ordersReducer from './slices/ordersSlice';
+import wishlistReducer from './slices/wishlistSlice';
 import { cartPersistenceMiddleware } from './middleware/cartMiddleware';
 
 const store = configureStore({
-    reducer:{
+    reducer: {
         cart: cartReducer,
         auth: authReducer,
-        orders: ordersReducer,  // Add orders
-        [productsApi.reducerPath] : productsApi.reducer, //Add Api reducer
+        orders: ordersReducer,
+        wishlist: wishlistReducer,
+        [productsApi.reducerPath]: productsApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-       getDefaultMiddleware()
-           .concat(productsApi.middleware)  // Add API middleware
-           .concat(cartPersistenceMiddleware),  // Add cart persistence
+        getDefaultMiddleware()
+            .concat(productsApi.middleware)
+            .concat(cartPersistenceMiddleware),
 });
 
 export default store;

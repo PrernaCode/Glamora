@@ -34,7 +34,7 @@ function OrderConfirmationPage() {
         {/* Order Details */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Order Details</h2>
-          
+
           <div className="space-y-2 mb-6">
             <div className="flex justify-between">
               <span className="text-gray-600">Order ID:</span>
@@ -43,18 +43,18 @@ function OrderConfirmationPage() {
             <div className="flex justify-between">
               <span className="text-gray-600">Order Date:</span>
               <span className="font-semibold">
-                {new Date(latestOrder.orderDate).toLocaleDateString()}
+                {new Date(latestOrder.created_at).toLocaleDateString()}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Total Amount:</span>
               <span className="font-bold text-lg">
-                ${latestOrder.totalAmount.toFixed(2)}
+                ${Number(latestOrder.total_amount).toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Status:</span>
-              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">
+              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold capitalize">
                 {latestOrder.status}
               </span>
             </div>
@@ -64,10 +64,10 @@ function OrderConfirmationPage() {
           <div className="border-t pt-4">
             <h3 className="font-semibold mb-2">Shipping Address</h3>
             <p className="text-gray-700">
-              {latestOrder.shippingAddress.fullName}<br />
-              {latestOrder.shippingAddress.address}<br />
-              {latestOrder.shippingAddress.city}, {latestOrder.shippingAddress.state} - {latestOrder.shippingAddress.pincode}<br />
-              Phone: {latestOrder.shippingAddress.phone}
+              {latestOrder.shipping_address?.fullName}<br />
+              {latestOrder.shipping_address?.address}<br />
+              {latestOrder.shipping_address?.city}, {latestOrder.shipping_address?.state} - {latestOrder.shipping_address?.pincode}<br />
+              Phone: {latestOrder.shipping_address?.phone}
             </p>
           </div>
         </div>
@@ -76,26 +76,30 @@ function OrderConfirmationPage() {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Items Ordered</h2>
           <div className="space-y-3">
-            {latestOrder.items.map(item => (
-              <div key={item.id} className="flex items-center gap-4 border-b pb-3">
-                {item.image && item.image.startsWith('http') ? (
-                  <img 
-                    src={item.image} 
-                    alt={item.title || item.name}
-                    className="w-16 h-16 object-contain"
-                  />
-                ) : (
-                  <div className="text-3xl">{item.image}</div>
-                )}
-                <div className="flex-1">
-                  <h3 className="font-semibold">{item.title || item.name}</h3>
-                  <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+            {(latestOrder.order_items || []).map(item => {
+              const itemTotal = item.unit_price * item.quantity;
+              return (
+                <div key={item.id || item.product_id} className="flex items-center gap-4 border-b pb-3">
+                  {item.image && item.image.startsWith('http') ? (
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-16 h-16 object-contain"
+                    />
+                  ) : (
+                    <div className="text-3xl">{item.image}</div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{item.title}</h3>
+                    <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                    <p className="text-xs text-gray-400">${Number(item.unit_price).toFixed(2)} each</p>
+                  </div>
+                  <div className="font-bold">
+                    ${itemTotal.toFixed(2)}
+                  </div>
                 </div>
-                <div className="font-bold">
-                  ${item.totalPrice.toFixed(2)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
