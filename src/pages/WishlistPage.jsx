@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { toggleWishlistItem } from '../redux/slices/wishlistSlice';
 import { addToCart } from '../redux/slices/cartSlice';
 import { useToast } from '../components/Toast';
+import ProductImage from '../components/ProductImage';
 
 const Icons = {
     Trash: () => (
@@ -79,10 +80,10 @@ function WishlistPage() {
                     {wishlistItems.map((item) => (
                         <div key={item.id} className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
                             <div className="relative aspect-square bg-white flex items-center justify-center p-6 border-b border-gray-50">
-                                <img
+                                <ProductImage
                                     src={item.image}
                                     alt={item.title}
-                                    className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full group-hover:scale-105 transition-transform duration-500"
                                 />
                                 <button
                                     onClick={() => handleRemove(item)}

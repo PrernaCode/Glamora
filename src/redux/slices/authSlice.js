@@ -187,6 +187,9 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       // Logout
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.profile = null;

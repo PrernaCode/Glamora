@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { removeFromCart, updateQuantity } from '../redux/slices/cartSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/Toast';
+import ProductImage from '../components/ProductImage';
 
 function CartPage() {
   const dispatch = useDispatch();
@@ -25,7 +26,9 @@ function CartPage() {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      navigate('/login?redirect=checkout');
+      navigate('/login', {
+        state: { from: { pathname: '/checkout' } }
+      });
     } else {
       navigate('/checkout');
     }
@@ -37,8 +40,8 @@ function CartPage() {
         <div className="text-6xl mb-4">🛒</div>
         <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
         <p className="text-gray-600 mb-6">Add some luxury items to get started!</p>
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="inline-block bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition"
         >
           Continue Shopping
@@ -55,8 +58,8 @@ function CartPage() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {cartItems.map(item => (
-            <div 
-              key={item.id} 
+            <div
+              key={item.id}
               className="bg-white rounded-lg shadow-md p-4 md:p-6"
             >
               {/* Mobile Layout: Stacked */}
@@ -64,17 +67,14 @@ function CartPage() {
                 {/* Top: Image + Info */}
                 <div className="flex gap-4">
                   <div className="w-20 h-20 flex-shrink-0">
-                    {item.image && item.image.startsWith('http') ? (
-                      <img 
-                        src={item.image} 
-                        alt={item.title || item.name}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div className="text-5xl">{item.image}</div>
-                    )}
+                    <ProductImage
+                      src={item.image}
+                      alt={item.title || item.name}
+                      className="w-full h-full"
+                    />
                   </div>
-                  
+                  streams:
+
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-semibold mb-1 truncate">
                       {item.title || item.name}
@@ -123,16 +123,13 @@ function CartPage() {
               <div className="hidden md:flex items-center gap-6">
                 {/* Product Image */}
                 <div className="w-20 h-20 flex-shrink-0">
-                  {item.image && item.image.startsWith('http') ? (
-                    <img 
-                      src={item.image} 
-                      alt={item.title || item.name}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="text-5xl">{item.image}</div>
-                  )}
+                  <ProductImage
+                    src={item.image}
+                    alt={item.title || item.name}
+                    className="w-full h-full"
+                  />
                 </div>
+                streams:
 
                 {/* Product Info */}
                 <div className="flex-1">
@@ -182,7 +179,7 @@ function CartPage() {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-            
+
             <div className="space-y-3 mb-6">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
@@ -198,15 +195,15 @@ function CartPage() {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={handleCheckout}
               className="w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition font-semibold mb-3"
             >
               {isAuthenticated ? 'Proceed to Checkout' : 'Login to Checkout'}
             </button>
 
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="block text-center text-gray-600 hover:text-black transition"
             >
               ← Continue Shopping

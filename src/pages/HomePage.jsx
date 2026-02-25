@@ -8,6 +8,7 @@ import { useToast } from '../components/Toast';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import useDebounce from '../hooks/useDebounce';
 import LoginModal from '../components/LoginModal';
+import ProductImage from '../components/ProductImage';
 
 const Icons = {
   Heart: ({ filled }) => (
@@ -48,11 +49,10 @@ const ProductCard = memo(({ product, onAddToCart, onLoginRequired }) => {
       </button>
 
       <Link to={`/product/${product.id}`}>
-        <img
+        <ProductImage
           src={product.image}
           alt={product.title}
-          loading="lazy"
-          className="w-full h-48 object-contain p-4 group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+          className="w-full h-48 p-4 group-hover:scale-105 transition-transform duration-300 cursor-pointer"
         />
       </Link>
 

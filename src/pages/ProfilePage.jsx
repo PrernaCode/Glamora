@@ -4,6 +4,7 @@ import { logoutUser, updateProfile } from '../redux/slices/authSlice';
 import { clearCart, loadUserCart } from '../redux/slices/cartSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/Toast';
+import ConfirmModal from '../components/ConfirmModal';
 
 // Icons as SVG Components for a clean look
 const Icons = {
@@ -52,8 +53,10 @@ function ProfilePage() {
     city: '',
     state: '',
     pincode: '',
-    country: 'United States'
+    country: profile.country || 'United States'
   });
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -70,11 +73,18 @@ function ProfilePage() {
   }, [profile]);
 
   const handleLogout = async () => {
-    await dispatch(logoutUser());
-    dispatch(clearCart());
-    dispatch(loadUserCart(null));
-    addToast('Logged out successfully', 'success');
-    navigate('/');
+    try {
+      addToast('Signing out...', 'info');
+      await dispatch(logoutUser()).unwrap();
+      dispatch(clearCart());
+      dispatch(loadUserCart(null));
+      addToast('Logged out successfully', 'success');
+      navigate('/', { replace: true });
+    } catch (error) {
+      addToast(error || 'Failed to logout', 'error');
+    } finally {
+      setShowLogoutConfirm(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -120,8 +130,8 @@ function ProfilePage() {
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-4 px-4 py-4 text-xs font-bold tracking-widest transition-all ${activeTab === item.id
-                      ? 'bg-gray-50 text-black border-l-4 border-black'
-                      : 'text-gray-400 hover:text-black'
+                    ? 'bg-gray-50 text-black border-l-4 border-black'
+                    : 'text-gray-400 hover:text-black'
                     }`}
                 >
                   <item.icon />
@@ -129,8 +139,9 @@ function ProfilePage() {
                 </button>
               ))}
               <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-4 px-4 py-4 text-xs font-bold tracking-widest text-gray-400 hover:text-red-600 transition-all mt-8"
+                onClick={() => setShowLogoutConfirm(true)}
+                disabled={loading && !isEditing}
+                className="w-full flex items-center gap-4 px-4 py-4 text-xs font-bold tracking-widest text-gray-400 hover:text-red-600 transition-all mt-8 disabled:opacity-50"
               >
                 <Icons.Logout />
                 SIGN OUT
@@ -360,6 +371,16 @@ function ProfilePage() {
           </main>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Sign Out"
+        message="Are you sure you want to sign out? Your session will be ended and you'll need to sign back in to access your wishlist and profile."
+        confirmText={loading ? "SIGNING OUT..." : "CONFIRM SIGN OUT"}
+        variant="danger"
+      />
 
       {/* CSS for animations */}
       <style dangerouslySetInnerHTML={{

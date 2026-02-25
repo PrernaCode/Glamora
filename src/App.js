@@ -47,8 +47,22 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-                <Route path="/wishlist" element={<WishlistPage />} />
+                <Route
+                  path="/order-confirmation"
+                  element={
+                    <ProtectedRoute>
+                      <OrderConfirmationPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/wishlist"
+                  element={
+                    <ProtectedRoute>
+                      <WishlistPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>

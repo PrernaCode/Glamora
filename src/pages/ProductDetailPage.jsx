@@ -5,6 +5,7 @@ import { addToCart } from '../redux/slices/cartSlice';
 import { toggleWishlistItem } from '../redux/slices/wishlistSlice';
 import { useGetProductByIdQuery } from '../redux/slices/productsApi';
 import LoginModal from '../components/LoginModal';
+import ProductImage from '../components/ProductImage';
 
 const Icons = {
   Heart: ({ filled }) => (
@@ -72,10 +73,10 @@ function ProductDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white rounded-lg shadow-lg p-8">
         {/* Product Image */}
         <div className="flex items-center justify-center">
-          <img
+          <ProductImage
             src={product.image}
             alt={product.title}
-            className="max-h-96 object-contain"
+            className="w-full max-h-96"
           />
         </div>
 

@@ -4,14 +4,17 @@ import { loginUser, clearError } from '../redux/slices/authSlice';
 import { loadUserCart, fetchCart, mergeGuestCart } from '../redux/slices/cartSlice';
 import { fetchWishlist } from '../redux/slices/wishlistSlice';
 import { fetchOrders } from '../redux/slices/ordersSlice';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 
 function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToast } = useToast();
   const { isAuthenticated, loading, error, user } = useSelector(state => state.auth);
+
+  const from = location.state?.from?.pathname || '/';
 
   const [formData, setFormData] = useState({
     email: '',
@@ -34,7 +37,7 @@ function LoginPage() {
         await dispatch(fetchOrders(user.id));
 
         addToast('Login successful!', 'success');
-        navigate('/');
+        navigate(from, { replace: true });
       }
     };
     syncData();

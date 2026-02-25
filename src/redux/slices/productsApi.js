@@ -1,5 +1,20 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+// Helper to clean malformed image URLs and detect placeholders from Platzi API
+const cleanImageUrl = (url) => {
+  if (!url) return null;
+
+  // Handle URLs wrapped in brackets/quotes: ["url"]
+  let cleaned = url.replace(/[\[\]"]/g, '');
+
+  // Return null for placeholders to trigger local fallback
+  if (cleaned.includes('placehold.co') || cleaned.includes('placeholder')) {
+    return null;
+  }
+
+  return cleaned;
+};
+
 // Define API slice
 export const productsApi = createApi({
   reducerPath: 'productsApi',
@@ -10,9 +25,9 @@ export const productsApi = createApi({
       query: () => '/products',
       transformResponse: (response) => response.map(product => ({
         ...product,
-        image: product.images?.[0] || '', // Map array to single image string
-        category: product.category?.name || 'Uncategorized', // Flatten category object for UI
-        rating: { rate: 4.5, count: 120 }, // Mock ratings as Platzi lacks them
+        image: cleanImageUrl(product.images?.[0]),
+        category: product.category?.name || 'Uncategorized',
+        rating: { rate: 4.5, count: 120 },
       })),
     }),
 
@@ -21,13 +36,13 @@ export const productsApi = createApi({
       query: (id) => `/products/${id}`,
       transformResponse: (response) => ({
         ...response,
-        image: response.images?.[0] || '',
+        image: cleanImageUrl(response.images?.[0]),
         category: response.category?.name || 'Uncategorized',
-        rating: { rate: 4.5, count: 120 }, // Mock ratings
+        rating: { rate: 4.5, count: 120 },
       }),
     }),
 
-    // Get all categories (Returns array of objects: {id, name, ...})
+    // Get all categories
     getCategories: builder.query({
       query: () => '/categories',
     }),
@@ -37,9 +52,9 @@ export const productsApi = createApi({
       query: (categoryId) => `/products/?categoryId=${categoryId}`,
       transformResponse: (response) => response.map(product => ({
         ...product,
-        image: product.images?.[0] || '',
+        image: cleanImageUrl(product.images?.[0]),
         category: product.category?.name || 'Uncategorized',
-        rating: { rate: 4.5, count: 120 }, // Mock ratings
+        rating: { rate: 4.5, count: 120 },
       })),
     }),
   }),
