@@ -1,66 +1,149 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react';
+import { supabase } from '../../supabaseClient';
 
-// Helper to clean malformed image URLs and detect placeholders from Platzi API
-const cleanImageUrl = (url) => {
-  if (!url) return null;
+/**
+ * Standardizes product data from Supabase to match the frontend model.
+ */
+const mapProduct = (product) => ({
+  ...product,
+  image: product.images?.[0] || null,
+  category: product.category?.name || 'Uncategorized',
+  rating: {
+    rate: product.rating_rate,
+    count: product.rating_count
+  },
+});
 
-  // Handle URLs wrapped in brackets/quotes: ["url"]
-  let cleaned = url.replace(/[\[\]"]/g, '');
-
-  // Return null for placeholders to trigger local fallback
-  if (cleaned.includes('placehold.co') || cleaned.includes('placeholder')) {
-    return null;
-  }
-
-  return cleaned;
-};
-
-// Define API slice
 export const productsApi = createApi({
   reducerPath: 'productsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://api.escuelajs.co/api/v1' }),
+  baseQuery: fakeBaseQuery(),
+  tagTypes: ['Products'],
   endpoints: (builder) => ({
-    // Get all products
+    // Get all products from Supabase with Pagination
     getProducts: builder.query({
-      query: () => '/products',
-      transformResponse: (response) => response.map(product => ({
-        ...product,
-        image: cleanImageUrl(product.images?.[0]),
-        category: product.category?.name || 'Uncategorized',
-        rating: { rate: 4.5, count: 120 },
-      })),
+      queryFn: async (page = 0) => {
+        try {
+          const itemsPerPage = 15;
+          const from = page * itemsPerPage;
+          const to = from + itemsPerPage - 1;
+
+          const { data, error } = await supabase
+            .from('products')
+            .select(`
+              id, title, price, images,
+              category:categories(name)
+            `)
+            .order('created_at', { ascending: false })
+            .range(from, to);
+
+          if (error) throw error;
+          return { data: data.map(mapProduct) };
+        } catch (error) {
+          return { error: { message: error.message } };
+        }
+      },
+      // Keep existing data and append new results
+      serializeQueryArgs: ({ endpointName }) => {
+        return endpointName;
+      },
+      merge: (currentCacheData, newItemsData) => {
+        if (currentCacheData) {
+          return [...currentCacheData, ...newItemsData];
+        }
+        return newItemsData;
+      },
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg !== previousArg;
+      },
+      providesTags: (result) =>
+        result
+          ? [...result.map(({ id }) => ({ type: 'Products', id })), { type: 'Products', id: 'LIST' }]
+          : [{ type: 'Products', id: 'LIST' }],
     }),
 
-    // Get single product by ID
+    // Get single product by ID (Includes description for detail view)
     getProductById: builder.query({
-      query: (id) => `/products/${id}`,
-      transformResponse: (response) => ({
-        ...response,
-        image: cleanImageUrl(response.images?.[0]),
-        category: response.category?.name || 'Uncategorized',
-        rating: { rate: 4.5, count: 120 },
-      }),
+      queryFn: async (id) => {
+        try {
+          const { data, error } = await supabase
+            .from('products')
+            .select(`
+              *,
+              category:categories(name)
+            `)
+            .eq('id', id)
+            .single();
+
+          if (error) throw error;
+          return { data: mapProduct(data) };
+        } catch (error) {
+          return { error: { message: error.message } };
+        }
+      },
+      providesTags: (result, error, id) => [{ type: 'Products', id }],
     }),
 
     // Get all categories
     getCategories: builder.query({
-      query: () => '/categories',
+      queryFn: async () => {
+        try {
+          const { data, error } = await supabase
+            .from('categories')
+            .select('id, name, image')
+            .order('name');
+
+          if (error) throw error;
+          return { data };
+        } catch (error) {
+          return { error: { message: error.message } };
+        }
+      },
     }),
 
-    // Get products by category
+    // Get products by category (Selective columns + Pagination)
     getProductsByCategory: builder.query({
-      query: (categoryId) => `/products/?categoryId=${categoryId}`,
-      transformResponse: (response) => response.map(product => ({
-        ...product,
-        image: cleanImageUrl(product.images?.[0]),
-        category: product.category?.name || 'Uncategorized',
-        rating: { rate: 4.5, count: 120 },
-      })),
+      queryFn: async ({ categoryId, page = 0 }) => {
+        try {
+          const itemsPerPage = 15;
+          const from = page * itemsPerPage;
+          const to = from + itemsPerPage - 1;
+
+          const { data, error } = await supabase
+            .from('products')
+            .select(`
+              id, title, price, images,
+              category:categories(name)
+            `)
+            .eq('category_id', categoryId)
+            .order('created_at', { ascending: false })
+            .range(from, to);
+
+          if (error) throw error;
+          return { data: data.map(mapProduct) };
+        } catch (error) {
+          return { error: { message: error.message } };
+        }
+      },
+      serializeQueryArgs: ({ queryArgs }) => {
+        return queryArgs.categoryId;
+      },
+      merge: (currentCacheData, newItemsData) => {
+        if (currentCacheData) {
+          return [...currentCacheData, ...newItemsData];
+        }
+        return newItemsData;
+      },
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg?.page !== previousArg?.page || currentArg?.categoryId !== previousArg?.categoryId;
+      },
+      providesTags: (result) =>
+        result
+          ? [...result.map(({ id }) => ({ type: 'Products', id })), { type: 'Products', id: 'LIST' }]
+          : [{ type: 'Products', id: 'LIST' }],
     }),
   }),
 });
 
-// Export hooks for usage in components
 export const {
   useGetProductsQuery,
   useGetProductByIdQuery,

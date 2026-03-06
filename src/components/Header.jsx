@@ -12,16 +12,31 @@ function Header() {
 
   return (
     <>
-      <header className="bg-black text-white shadow-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+      <header className="bg-white/80 backdrop-blur-md text-black border-b border-gray-100 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <Link to="/">
-              <h1 className="text-2xl font-bold tracking-wider cursor-pointer hover:text-gray-300">
-                GLAMORA
+              <h1 className="text-xl md:text-2xl font-black tracking-tighter cursor-pointer hover:opacity-70 transition-opacity">
+                MINIMAL
               </h1>
             </Link>
 
-            <div className="flex items-center space-x-6">
+            <div className="hidden lg:flex items-center space-x-8">
+              {['Shop All', 'Men', 'Women', 'Accessories', 'Journal'].map((item) => (
+                <Link key={item} to="/homepage" className="text-[11px] font-black uppercase tracking-widest hover:text-gray-400 transition-colors">
+                  {item}
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex items-center space-x-4 md:space-x-6">
+              {/* Desktop Search Placeholder */}
+              <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-48 lg:w-64">
+                <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" placeholder="Search products..." className="bg-transparent text-xs w-full focus:outline-none" />
+              </div>
               {/* Desktop */}
               <div className="hidden md:flex items-center space-x-6">
                 <Link to="/wishlist" className="relative hover:text-gray-300 transition">

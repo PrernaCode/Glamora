@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -26,7 +27,8 @@ function App() {
             <Header />
             <Suspense fallback={<LoadingSkeleton />}>
               <Routes>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/homepage" element={<HomePage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />

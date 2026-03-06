@@ -85,42 +85,55 @@ function HomePage() {
   const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [page, setPage] = useState(0);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const handleLoginRequired = () => setIsLoginModalOpen(true);
 
-  // Debounce search term with 500ms delay
+  // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data: categories } = useGetCategoriesQuery();
 
-  const { data: allProducts, isLoading: loadingAll } = useGetProductsQuery(undefined, {
+  // Reset page when category or search changes
+  useMemo(() => {
+    setPage(0);
+  }, [selectedCategory, debouncedSearchTerm]);
+
+  const { data: allProducts, isLoading: loadingAll, isFetching: fetchingAll } = useGetProductsQuery(page, {
     skip: selectedCategory !== 'all'
   });
 
-  const { data: categoryProducts, isLoading: loadingCategory } = useGetProductsByCategoryQuery(
-    selectedCategory,
+  const { data: categoryProducts, isLoading: loadingCategory, isFetching: fetchingCategory } = useGetProductsByCategoryQuery(
+    { categoryId: selectedCategory, page },
     { skip: selectedCategory === 'all' }
   );
 
   const products = selectedCategory === 'all' ? allProducts : categoryProducts;
-  const isLoading = selectedCategory === 'all' ? loadingAll : loadingCategory;
+  const isLoadingInitial = page === 0 && (selectedCategory === 'all' ? loadingAll : loadingCategory);
+  const isFetchingMore = page > 0 && (selectedCategory === 'all' ? fetchingAll : fetchingCategory);
 
   // Filter products using DEBOUNCED search term
   const filteredProducts = useMemo(() => {
     const filtered = products?.filter(product =>
       product.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-
     return filtered;
-  }, [products, debouncedSearchTerm]); // Using debouncedSearchTerm instead of searchTerm
+  }, [products, debouncedSearchTerm]);
 
   const handleAddToCart = useCallback((product) => {
     dispatch(addToCart(product));
     addToast(`${product.title.substring(0, 30)}... added to cart`, 'success');
   }, [dispatch, addToast]);
 
-  if (isLoading) {
+  const hasMore = useMemo(() => {
+    // Basic check: if we got exactly 15 items, there might be more
+    // This is a simple heuristic; a real API would return total count
+    if (!products) return false;
+    return products.length > 0 && products.length % 15 === 0;
+  }, [products]);
+
+  if (isLoadingInitial) {
     return <LoadingSkeleton />;
   }
 
@@ -189,7 +202,8 @@ function HomePage() {
         Showing {filteredProducts?.length || 0} products
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Optimized Grid: 2 columns on mobile */}
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {filteredProducts?.map(product => (
           <ProductCard
             key={product.id}
@@ -199,6 +213,31 @@ function HomePage() {
           />
         ))}
       </div>
+
+      {/* Pagination: Show More Button */}
+      {hasMore && !debouncedSearchTerm && (
+        <div className="mt-12 flex justify-center">
+          <button
+            onClick={() => setPage(prev => prev + 1)}
+            disabled={isFetchingMore}
+            className={`
+              w-full md:w-auto min-w-[200px] px-8 py-3 bg-black text-white rounded-lg font-medium 
+              hover:bg-gray-800 transition-all duration-300 transform active:scale-95
+              flex items-center justify-center gap-3
+              ${isFetchingMore ? 'opacity-70 cursor-not-allowed' : ''}
+            `}
+          >
+            {isFetchingMore ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Loading...
+              </>
+            ) : (
+              'Show More Products'
+            )}
+          </button>
+        </div>
+      )}
 
       <LoginModal
         isOpen={isLoginModalOpen}
