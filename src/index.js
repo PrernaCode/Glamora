@@ -5,7 +5,6 @@ import App from './App';
 import { Provider } from 'react-redux';
 import store from './redux/store';
 import { initializeAuth } from './redux/slices/authSlice';
-import { loadUserCart } from './redux/slices/cartSlice';
 
 import { fetchCart, mergeGuestCart } from './redux/slices/cartSlice';
 import { fetchOrders } from './redux/slices/ordersSlice';

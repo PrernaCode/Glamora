@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from 'react';
+import React, { useState, useMemo, useCallback, memo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { addToCart } from '../redux/slices/cartSlice';
 import { toggleWishlistItem } from '../redux/slices/wishlistSlice';
@@ -96,7 +96,7 @@ function HomePage() {
   const { data: categories } = useGetCategoriesQuery();
 
   // Reset page when category or search changes
-  useMemo(() => {
+  useEffect(() => {
     setPage(0);
   }, [selectedCategory, debouncedSearchTerm]);
 

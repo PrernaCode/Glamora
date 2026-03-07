@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { signupUser, clearError } from '../redux/slices/authSlice';
-import { clearCart, loadUserCart, fetchCart, mergeGuestCart } from '../redux/slices/cartSlice';
+import { fetchCart, mergeGuestCart } from '../redux/slices/cartSlice';
 import { fetchWishlist } from '../redux/slices/wishlistSlice';
 import { fetchOrders } from '../redux/slices/ordersSlice';
 import { Link, useNavigate } from 'react-router-dom';
@@ -19,7 +19,6 @@ function SignupPage() {
     password: '',
     confirmPassword: '',
   });
-  const [localError, setLocalError] = useState('');
 
   useEffect(() => {
     const syncData = async () => {
@@ -60,27 +59,22 @@ function SignupPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setLocalError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLocalError('');
 
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setLocalError('Please fill in all fields');
       addToast('Please fill in all fields', 'error');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setLocalError('Passwords do not match');
       addToast('Passwords do not match', 'error');
       return;
     }
 
     if (formData.password.length < 6) {
-      setLocalError('Password must be at least 6 characters');
       addToast('Password must be at least 6 characters', 'error');
       return;
     }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../redux/slices/authSlice';
-import { loadUserCart, fetchCart, mergeGuestCart } from '../redux/slices/cartSlice';
+import { fetchCart, mergeGuestCart } from '../redux/slices/cartSlice';
 import { fetchWishlist } from '../redux/slices/wishlistSlice';
 import { fetchOrders } from '../redux/slices/ordersSlice';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -41,7 +41,7 @@ function LoginPage() {
       }
     };
     syncData();
-  }, [isAuthenticated, user, navigate, addToast, dispatch]);
+  }, [isAuthenticated, user, navigate, addToast, dispatch, from]);
 
   useEffect(() => {
     if (error) {
