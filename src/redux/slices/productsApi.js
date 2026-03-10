@@ -141,6 +141,38 @@ export const productsApi = createApi({
           ? [...result.map(({ id }) => ({ type: 'Products', id })), { type: 'Products', id: 'LIST' }]
           : [{ type: 'Products', id: 'LIST' }],
     }),
+
+    // Server-side search using ilike — searches ALL products in DB
+    searchProducts: builder.query({
+      queryFn: async ({ searchTerm, categoryId, page = 0 }) => {
+        try {
+          const itemsPerPage = 15;
+          const from = page * itemsPerPage;
+          const to = from + itemsPerPage - 1;
+
+          let query = supabase
+            .from('products')
+            .select(`
+              id, title, price, images,
+              category:categories(name)
+            `)
+            .ilike('title', `%${searchTerm}%`)
+            .order('created_at', { ascending: false })
+            .range(from, to);
+
+          if (categoryId && categoryId !== 'all') {
+            query = query.eq('category_id', categoryId);
+          }
+
+          const { data, error } = await query;
+          if (error) throw error;
+          return { data: data.map(mapProduct) };
+        } catch (error) {
+          return { error: { message: error.message } };
+        }
+      },
+      providesTags: [{ type: 'Products', id: 'SEARCH' }],
+    }),
   }),
 });
 
@@ -149,4 +181,5 @@ export const {
   useGetProductByIdQuery,
   useGetCategoriesQuery,
   useGetProductsByCategoryQuery,
+  useSearchProductsQuery,
 } = productsApi;

@@ -34,31 +34,31 @@ const NewArrivals = () => {
 
             <div className="relative group/scroll px-10">
                 {/* Navigation Buttons */}
-                <button 
-                    onClick={() => scroll('left')} 
+                <button
+                    onClick={() => scroll('left')}
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-100 z-10 transition-all hover:scale-110 active:scale-95 opacity-0 group-hover/scroll:opacity-100"
                 >
                     <svg className="w-6 h-6 text-[#00674f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 </button>
-                <button 
-                    onClick={() => scroll('right')} 
+                <button
+                    onClick={() => scroll('right')}
                     className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-100 z-10 transition-all hover:scale-110 active:scale-95 opacity-0 group-hover/scroll:opacity-100"
                 >
                     <svg className="w-6 h-6 text-[#00674f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
 
-                <div 
+                <div
                     ref={scrollRef}
                     className="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth pb-12"
                 >
                     {products?.map((product) => (
-                        <div 
-                            key={product.id} 
+                        <div
+                            key={product.id}
                             className="flex-none w-[300px] md:w-[350px] bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group border border-gray-50/50"
                         >
                             {/* Product Image */}
                             <div className="relative aspect-square overflow-hidden bg-gray-50">
-                                <img 
+                                <img
                                     src={product.images?.[0] || 'https://via.placeholder.com/400x400'}
                                     alt={product.title}
                                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"

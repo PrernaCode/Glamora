@@ -32,13 +32,13 @@ const BestSellers = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                 {featuredProducts.map((product) => (
-                    <div 
-                        key={product.id} 
+                    <div
+                        key={product.id}
                         className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 border border-gray-50/50"
                     >
                         {/* Image Container */}
                         <div className="relative aspect-[4/5] overflow-hidden bg-gray-50">
-                            <img 
+                            <img
                                 src={product.images?.[0] || 'https://via.placeholder.com/400x533'}
                                 alt={product.title}
                                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
@@ -46,7 +46,7 @@ const BestSellers = () => {
                             {/* Hover Overlay */}
                             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         </div>
-                        
+
                         {/* Unified Content Block */}
                         <div className="p-8 space-y-4">
                             <div className="space-y-1">
@@ -57,7 +57,7 @@ const BestSellers = () => {
                                     {product.title}
                                 </h3>
                             </div>
-                            
+
                             <div className="flex justify-between items-center pt-2">
                                 <p className="text-[#D4AF37] font-black text-2xl">
                                     ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0 })}
