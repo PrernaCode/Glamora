@@ -173,6 +173,24 @@ export const productsApi = createApi({
       },
       providesTags: [{ type: 'Products', id: 'SEARCH' }],
     }),
+
+    // Lightweight suggestion query for header search dropdown
+    getSuggestions: builder.query({
+      queryFn: async (searchTerm) => {
+        try {
+          const { data, error } = await supabase
+            .from('products')
+            .select('id, title')
+            .ilike('title', `%${searchTerm}%`)
+            .limit(5);
+          if (error) throw error;
+          return { data };
+        } catch (error) {
+          return { error: { message: error.message } };
+        }
+      },
+      providesTags: [{ type: 'Products', id: 'SUGGESTIONS' }],
+    }),
   }),
 });
 
@@ -182,4 +200,5 @@ export const {
   useGetCategoriesQuery,
   useGetProductsByCategoryQuery,
   useSearchProductsQuery,
+  useGetSuggestionsQuery,
 } = productsApi;

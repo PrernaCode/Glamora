@@ -1,14 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useGetSuggestionsQuery } from '../redux/slices/productsApi';
+import useDebounce from '../hooks/useDebounce';
 import MobileMenu from './MobileMenu';
 
 function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef(null);
+
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  // Mirror URL ?search param — when PLP clears it (e.g. category click), empty the input
+  useEffect(() => {
+    const urlTerm = searchParams.get('search') || '';
+    setSearchInput(urlTerm);
+  }, [searchParams]);
+
   const totalQuantity = useSelector(state => state.cart.totalQuantity);
   const wishlistCount = useSelector(state => state.wishlist.items.length);
   const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
   const user = useSelector(state => state.auth.user);
+
+  const { data: suggestions, isFetching: loadingSuggestions } = useGetSuggestionsQuery(
+    debouncedSearch,
+    { skip: debouncedSearch.trim().length < 2 }
+  );
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSubmit = (e) => {
+    e?.preventDefault();
+    const term = searchInput.trim();
+    setShowSuggestions(false);
+    if (term) {
+      navigate(`/homepage?search=${encodeURIComponent(term)}`);
+    } else {
+      navigate('/homepage');
+    }
+  };
+
+  const handleSuggestionClick = (productId) => {
+    setSearchInput('');
+    setShowSuggestions(false);
+    navigate(`/product/${productId}`);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') setShowSuggestions(false);
+  };
+
+  const isDropdownVisible = showSuggestions && debouncedSearch.trim().length >= 2;
 
   return (
     <>
@@ -35,13 +90,78 @@ function Header() {
             </nav>
 
             <div className="flex items-center space-x-4 md:space-x-6">
-              {/* Desktop Search Placeholder */}
-              <div className="hidden md:flex items-center rounded-full px-4 py-2 w-48 lg:w-64 bg-gray-100">
-                <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input type="text" placeholder="Search products..." className="bg-transparent text-xs w-full focus:outline-none placeholder:text-inherit/50" />
+
+              {/* ── Global Search (Desktop) ── */}
+              <div ref={searchRef} className="hidden md:block relative z-50">
+                <form
+                  onSubmit={handleSubmit}
+                  className="flex items-center rounded-full px-4 py-2 w-48 lg:w-64 bg-gray-100 focus-within:ring-2 focus-within:ring-[#00674f]/20 focus-within:bg-white transition-all"
+                >
+                  <svg className="w-4 h-4 mr-2 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search collection..."
+                    value={searchInput}
+                    onChange={(e) => { setSearchInput(e.target.value); setShowSuggestions(true); }}
+                    onFocus={() => { if (searchInput.trim().length >= 2) setShowSuggestions(true); }}
+                    onKeyDown={handleKeyDown}
+                    className="bg-transparent text-xs w-full focus:outline-none placeholder:text-gray-400 text-black font-medium"
+                    aria-label="Search products"
+                    autoComplete="off"
+                  />
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={() => { setSearchInput(''); setShowSuggestions(false); }}
+                      className="text-gray-400 hover:text-black transition text-xs ml-1 shrink-0"
+                      aria-label="Clear search"
+                    >✕</button>
+                  )}
+                </form>
+
+                {/* ── Suggestions Dropdown ── */}
+                {isDropdownVisible && (
+                  <div className="absolute top-full mt-2 left-0 w-full lg:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+                    {loadingSuggestions ? (
+                      <div className="flex items-center justify-center py-5">
+                        <div className="w-4 h-4 border-2 border-[#00674f]/30 border-t-[#00674f] rounded-full animate-spin" />
+                      </div>
+                    ) : suggestions?.length > 0 ? (
+                      <>
+                        <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Suggestions</p>
+                        {suggestions.map(product => (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => handleSuggestionClick(product.id)}
+                            className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
+                          >
+                            <svg className="w-3.5 h-3.5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <span className="text-xs font-bold text-gray-800 truncate">{product.title}</span>
+                          </button>
+                        ))}
+                        <div className="h-px bg-gray-100 mx-4" />
+                        <button
+                          type="button"
+                          onClick={handleSubmit}
+                          className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[#00674f] hover:bg-gray-50 transition-colors"
+                        >
+                          <span>View all results for "{searchInput.trim()}"</span>
+                          <span>→</span>
+                        </button>
+                      </>
+                    ) : (
+                      <div className="px-4 py-5 text-center">
+                        <p className="text-xs font-bold text-gray-400">No products found</p>
+                        <p className="text-[10px] text-gray-300 mt-1">Try a different keyword</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
+
               {/* Desktop Icons */}
               <div className="hidden md:flex items-center space-x-6">
                 <Link to="/wishlist" className="relative hover:text-[#00674f] transition">

@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { addToCart } from '../redux/slices/cartSlice';
 import { toggleWishlistItem } from '../redux/slices/wishlistSlice';
 import { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery, useSearchProductsQuery } from '../redux/slices/productsApi';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import useDebounce from '../hooks/useDebounce';
@@ -13,6 +13,7 @@ import cartGIcon from '../assets/icons/cartG.svg';
 import heartFilledIcon from '../assets/icons/heart_filled.svg';
 import heartOutlinedIcon from '../assets/icons/heart_outlined.svg';
 import ratingIcon from '../assets/icons/rating.svg';
+import { ReactComponent as DownArrowIcon } from '../assets/icons/down-arrow.svg';
 
 
 /* ─── Shared ProductCard ─────────────────────────────────────────────── */
@@ -116,28 +117,35 @@ function HomePage() {
   const [page, setPage] = useState(0);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
+
+  // Read ?search= from URL (set by the header global search)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
 
   const handleLoginRequired = () => setIsLoginModalOpen(true);
-  const debouncedSearchTerm = useDebounce(searchTerm, 800); // 800ms debounce to reduce API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 800);
   const { data: categories } = useGetCategoriesQuery();
 
-  // Default to "Clothes" category on first load
-  useEffect(() => {
-    if (categories && selectedCategory === null) {
-      const clothes = categories.find(c => c.name.toLowerCase().includes('cloth'));
-      setSelectedCategory(clothes ? clothes.id : 'all');
-    }
-  }, [categories, selectedCategory]);
+  // URL search (from header) takes priority over local state search
+  const effectiveSearch = urlSearch || debouncedSearchTerm;
 
-  // Reset page on filter change
-  useEffect(() => { setPage(0); }, [selectedCategory, debouncedSearchTerm]);
+  // Default to "All" category on first load
+  useEffect(() => {
+    if (selectedCategory === null) {
+      setSelectedCategory('all');
+    }
+  }, [selectedCategory]);
+
+  // Reset page on filter / search change
+  useEffect(() => { setPage(0); }, [selectedCategory, effectiveSearch]);
 
   const currentCategoryId = selectedCategory ?? 'all';
-  const isSearchActive = debouncedSearchTerm.trim().length > 0;
+  const isSearchActive = effectiveSearch.trim().length > 0;
 
-  // ── Server-side search (active when user types) ──
+  // Server-side search (runs when header OR local search is active)
   const { data: searchResults, isFetching: fetchingSearch } = useSearchProductsQuery(
-    { searchTerm: debouncedSearchTerm, categoryId: currentCategoryId, page },
+    { searchTerm: effectiveSearch, categoryId: currentCategoryId, page },
     { skip: !isSearchActive }
   );
 
@@ -164,22 +172,40 @@ function HomePage() {
   );
 
   const filteredProducts = useMemo(() => {
-    // Server search already filters by title — only apply price & rating client-side
     let result = isSearchActive
       ? products
-      : products?.filter(p => p.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+      : products?.filter(p => p.title.toLowerCase().includes(effectiveSearch.toLowerCase()));
 
     if (selectedRating) {
       result = result?.filter(p => (p.rating?.rate ?? 0) >= selectedRating);
     }
     result = result?.filter(p => (p.price ?? 0) <= priceMax);
+
+    // Apply sort
+    if (result) {
+      result = [...result].sort((a, b) => {
+        if (sortBy === 'price_asc') return (a.price ?? 0) - (b.price ?? 0);
+        if (sortBy === 'price_desc') return (b.price ?? 0) - (a.price ?? 0);
+        return 0;
+      });
+    }
     return result;
-  }, [products, debouncedSearchTerm, selectedRating, priceMax, isSearchActive]);
+  }, [products, effectiveSearch, selectedRating, priceMax, isSearchActive, sortBy]);
 
   const handleAddToCart = useCallback((product) => {
     dispatch(addToCart(product));
     addToast(`${product.title.substring(0, 30)}... added to cart`, 'success');
   }, [dispatch, addToast]);
+
+  // Clears search (local + URL) whenever a category is selected
+  const handleCategoryChange = useCallback((id) => {
+    setSelectedCategory(id);
+    setSearchTerm('');
+    if (searchParams.get('search')) {
+      searchParams.delete('search');
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
 
   const hasMore = useMemo(() => {
     if (!products) return false;
@@ -241,7 +267,7 @@ function HomePage() {
             </div>
             <div className="space-y-3 pl-4">
               <button
-                onClick={() => setSelectedCategory('all')}
+                onClick={() => handleCategoryChange('all')}
                 className={`flex items-center gap-3 w-full text-left transition-colors ${currentCategoryId === 'all' ? 'text-[#00674f]' : 'text-gray-500 hover:text-black'}`}
               >
                 <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${currentCategoryId === 'all' ? 'border-[#00674f] bg-[#00674f]' : 'border-gray-300'}`}>
@@ -252,7 +278,7 @@ function HomePage() {
               {categories?.map(cat => (
                 <button
                   key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
+                  onClick={() => handleCategoryChange(cat.id)}
                   className={`flex items-center gap-3 w-full text-left transition-colors ${currentCategoryId === cat.id ? 'text-[#00674f]' : 'text-gray-500 hover:text-black'}`}
                 >
                   <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${currentCategoryId === cat.id ? 'border-[#00674f] bg-[#00674f]' : 'border-gray-300'}`}>
@@ -305,35 +331,46 @@ function HomePage() {
         {/* ── Main content ── */}
         <div className="flex-1 min-w-0 space-y-6">
 
-          {/* Top bar: count + search */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+          {/* Top bar: count + sort */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">
               Showing <span className="text-[#00674f]">{filteredProducts?.length || 0}</span> products
             </p>
 
-            {/* Search bar — top right of content */}
-            <div className="relative w-full sm:w-auto">
-              <input
-                type="text"
-                placeholder="Search collection..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full sm:w-56 lg:w-72 pl-9 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#00674f]/20 focus:bg-white transition-all text-xs font-medium"
-                aria-label="Search products"
+            {/* Sort By dropdown */}
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="appearance-none pl-4 pr-9 py-2.5 bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00674f] transition-all hover:bg-[#111] shadow-md"
+                aria-label="Sort products"
+              >
+                <option value="newest" className="bg-black">Newest</option>
+                <option value="price_asc" className="bg-black">Price: Low → High</option>
+                <option value="price_desc" className="bg-black">Price: High → Low</option>
+              </select>
+              <DownArrowIcon
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 pointer-events-none"
+                fill="white"
               />
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
             </div>
           </div>
 
-          {/* Active filter chips */}
-          {(debouncedSearchTerm || selectedRating) && (
+          {/* Active filter chips — shows URL search OR local search */}
+          {(effectiveSearch || selectedRating) && (
             <div className="flex flex-wrap gap-2">
-              {debouncedSearchTerm && (
+              {effectiveSearch && (
                 <span className="bg-black text-white pl-3 pr-2 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                  {debouncedSearchTerm}
-                  <button onClick={() => setSearchTerm('')} className="w-4 h-4 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/40" aria-label="Clear search">✕</button>
+                  {effectiveSearch}
+                  <button
+                    onClick={() => {
+                      // Clear whichever is active
+                      if (urlSearch) { searchParams.delete('search'); setSearchParams(searchParams); }
+                      else setSearchTerm('');
+                    }}
+                    className="w-4 h-4 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/40"
+                    aria-label="Clear search"
+                  >✕</button>
                 </span>
               )}
               {selectedRating && (
@@ -357,8 +394,8 @@ function HomePage() {
             ))}
           </div>
 
-          {/* Show More */}
-          {hasMore && !debouncedSearchTerm && (
+          {/* Show More — only when not searching */}
+          {hasMore && !effectiveSearch && (
             <div className="pt-12 flex justify-center">
               <button
                 onClick={() => setPage(prev => prev + 1)}
@@ -385,7 +422,12 @@ function HomePage() {
               <h3 className="text-xl font-black text-[#00674f] uppercase tracking-tighter">No products found</h3>
               <p className="text-gray-400 text-sm">Try adjusting your search or filters.</p>
               <button
-                onClick={() => { setSearchTerm(''); setSelectedCategory('all'); setSelectedRating(null); }}
+                onClick={() => {
+                  setSearchTerm('');
+                  if (urlSearch) { searchParams.delete('search'); setSearchParams(searchParams); }
+                  setSelectedCategory('all');
+                  setSelectedRating(null);
+                }}
                 className="text-[10px] font-black uppercase tracking-[0.3em] text-black border-b border-gray-300 pb-1 hover:border-black transition-all"
               >
                 Clear all filters
