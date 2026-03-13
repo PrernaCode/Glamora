@@ -16,6 +16,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage'));
 const WishlistPage = lazy(() => import('./pages/WishlistPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function App() {
@@ -65,6 +66,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/about" element={<AboutPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>

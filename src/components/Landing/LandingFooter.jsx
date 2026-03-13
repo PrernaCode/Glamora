@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const LandingFooter = () => {
     return (
@@ -45,7 +46,7 @@ const LandingFooter = () => {
                     <div>
                         <h3 className="font-black uppercase tracking-widest text-[10px] text-white/40 mb-8 border-b border-white/5 pb-2 inline-block">Company</h3>
                         <ul className="space-y-4">
-                            <li><button className="text-white/60 hover:text-white transition-colors text-sm font-medium uppercase tracking-tight">About Us</button></li>
+                            <li><Link to="/about" className="text-white/60 hover:text-white transition-colors text-sm font-medium uppercase tracking-tight">About Us</Link></li>
                             <li><button className="text-white/60 hover:text-white transition-colors text-sm font-medium uppercase tracking-tight">Sustainability</button></li>
                             <li><button className="text-white/60 hover:text-white transition-colors text-sm font-medium uppercase tracking-tight">Careers</button></li>
                             <li><button className="text-white/60 hover:text-white transition-colors text-sm font-medium uppercase tracking-tight">Press</button></li>
