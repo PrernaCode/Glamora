@@ -65,6 +65,33 @@ function Header() {
 
   const isDropdownVisible = showSuggestions && debouncedSearch.trim().length >= 2;
 
+  const handleNavClick = (e, item) => {
+    const isLandingPage = window.location.pathname === '/';
+    const itemId = item.toLowerCase().replace(' ', '-');
+
+    if (item === 'About') return; // Link handles it
+
+    if (item === 'Collections') {
+      navigate('/homepage');
+      return;
+    }
+
+    if (isLandingPage && (item === 'Categories' || item === 'New Arrivals' || item === 'Best Sellers')) {
+      e.preventDefault();
+      const element = document.getElementById(itemId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else if (item === 'New Arrivals' || item === 'Best Sellers' || item === 'Categories') {
+      e.preventDefault();
+      if (item === 'Categories') {
+        navigate('/homepage');
+      } else {
+        navigate(`/homepage?collection=${itemId}`);
+      }
+    }
+  };
+
   return (
     <>
       <header className="fixed w-full z-50 bg-white shadow-sm border-b border-gray-100 py-4 md:py-5 text-black">
@@ -77,10 +104,11 @@ function Header() {
             </Link>
 
             <nav className="hidden lg:flex items-center gap-12">
-              {['New Arrivals', 'Mens', 'Womens', 'Collections', 'Sale'].map((item) => (
+              {['Collections', 'Categories', 'New Arrivals', 'Best Sellers', 'About'].map((item) => (
                 <Link
                   key={item}
-                  to={`/${item.toLowerCase().replace(' ', '-')}`}
+                  to={item === 'About' ? '/about' : item === 'Collections' ? '/homepage' : '#'}
+                  onClick={(e) => handleNavClick(e, item)}
                   className="text-[11px] font-black uppercase tracking-[0.3em] transition-all relative group hover:text-[#00674f]"
                 >
                   {item}
@@ -232,6 +260,10 @@ function Header() {
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
+        handleNavClick={handleNavClick}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        onSearchSubmit={handleSubmit}
       />
     </>
   );

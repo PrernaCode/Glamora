@@ -31,6 +31,7 @@ export const productsApi = createApi({
             .from('products')
             .select(`
               id, title, price, images,
+              rating_rate, rating_count,
               category:categories(name)
             `)
             .order('created_at', { ascending: false })
@@ -112,6 +113,7 @@ export const productsApi = createApi({
             .from('products')
             .select(`
               id, title, price, images,
+              rating_rate, rating_count,
               category:categories(name)
             `)
             .eq('category_id', categoryId)
@@ -154,6 +156,7 @@ export const productsApi = createApi({
             .from('products')
             .select(`
               id, title, price, images,
+              rating_rate, rating_count,
               category:categories(name)
             `)
             .ilike('title', `%${searchTerm}%`)

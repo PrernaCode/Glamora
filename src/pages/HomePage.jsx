@@ -119,9 +119,10 @@ function HomePage() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
 
-  // Read ?search= from URL (set by the header global search)
+  // Read ?search= and ?collection= from URL
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
+  const collectionParam = searchParams.get('collection') || '';
 
   const handleLoginRequired = () => setIsLoginModalOpen(true);
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
@@ -130,15 +131,19 @@ function HomePage() {
   // URL search (from header) takes priority over local state search
   const effectiveSearch = urlSearch || debouncedSearchTerm;
 
-  // Default to "All" category on first load
+  // Default to "All" category on first load, unless a collection is specified
   useEffect(() => {
     if (selectedCategory === null) {
-      setSelectedCategory('all');
+      if (collectionParam === 'new-arrivals') {
+        setSelectedCategory(8); // New Arrivals category
+      } else {
+        setSelectedCategory('all');
+      }
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, collectionParam]);
 
   // Reset page on filter / search change
-  useEffect(() => { setPage(0); }, [selectedCategory, effectiveSearch]);
+  useEffect(() => { setPage(0); }, [selectedCategory, effectiveSearch, collectionParam]);
 
   const currentCategoryId = selectedCategory ?? 'all';
   const isSearchActive = effectiveSearch.trim().length > 0;
@@ -155,26 +160,34 @@ function HomePage() {
   });
 
   const { data: categoryProducts, isLoading: loadingCategory, isFetching: fetchingCategory } = useGetProductsByCategoryQuery(
-    { categoryId: currentCategoryId, page },
-    { skip: isSearchActive || currentCategoryId === 'all' }
+    { categoryId: (collectionParam === 'new-arrivals' && currentCategoryId === 'all') ? 8 : currentCategoryId, page },
+    { skip: isSearchActive || (currentCategoryId === 'all' && collectionParam !== 'new-arrivals') }
   );
 
   // Route to the right data source
   const products = isSearchActive
     ? searchResults
-    : currentCategoryId === 'all' ? allProducts : categoryProducts;
+    : (currentCategoryId === 'all' && collectionParam !== 'new-arrivals') ? allProducts : categoryProducts;
 
   const isLoadingInitial = page === 0 && (
-    isSearchActive ? false : currentCategoryId === 'all' ? loadingAll : loadingCategory
+    isSearchActive ? false : (currentCategoryId === 'all' && collectionParam !== 'new-arrivals') ? loadingAll : loadingCategory
   );
   const isFetchingMore = page > 0 && (
-    isSearchActive ? fetchingSearch : currentCategoryId === 'all' ? fetchingAll : fetchingCategory
+    isSearchActive ? fetchingSearch : (currentCategoryId === 'all' && collectionParam !== 'new-arrivals') ? fetchingAll : fetchingCategory
   );
 
   const filteredProducts = useMemo(() => {
-    let result = isSearchActive
-      ? products
-      : products?.filter(p => p.title.toLowerCase().includes(effectiveSearch.toLowerCase()));
+    let result = products;
+
+    // Apply text search filter if not using server-side results
+    if (!isSearchActive && effectiveSearch) {
+      result = result?.filter(p => p.title.toLowerCase().includes(effectiveSearch.toLowerCase()));
+    }
+
+    // Apply Best Sellers collection logic (rating >= 4.5)
+    if (collectionParam === 'best-sellers') {
+      result = result?.filter(p => (p.rating?.rate ?? 0) >= 4.5);
+    }
 
     if (selectedRating) {
       result = result?.filter(p => (p.rating?.rate ?? 0) >= selectedRating);
@@ -190,21 +203,23 @@ function HomePage() {
       });
     }
     return result;
-  }, [products, effectiveSearch, selectedRating, priceMax, isSearchActive, sortBy]);
+  }, [products, effectiveSearch, selectedRating, priceMax, isSearchActive, sortBy, collectionParam]);
 
   const handleAddToCart = useCallback((product) => {
     dispatch(addToCart(product));
     addToast(`${product.title.substring(0, 30)}... added to cart`, 'success');
   }, [dispatch, addToast]);
 
-  // Clears search (local + URL) whenever a category is selected
+  // Clears search (local + URL) and collection whenever a category is selected
   const handleCategoryChange = useCallback((id) => {
     setSelectedCategory(id);
     setSearchTerm('');
-    if (searchParams.get('search')) {
-      searchParams.delete('search');
-      setSearchParams(searchParams);
-    }
+    
+    // Create a new URLSearchParams object to safely update the URL
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('search');
+    newParams.delete('collection');
+    setSearchParams(newParams);
   }, [searchParams, setSearchParams]);
 
   const hasMore = useMemo(() => {
@@ -213,10 +228,12 @@ function HomePage() {
   }, [products]);
 
   const currentCategoryName = useMemo(() => {
+    if (collectionParam === 'new-arrivals') return 'New Arrivals';
+    if (collectionParam === 'best-sellers') return 'Best Sellers';
     if (currentCategoryId === 'all') return 'All Collections';
     const cat = categories?.find(c => String(c.id) === String(currentCategoryId));
     return cat ? cat.name : 'Clothes';
-  }, [categories, currentCategoryId]);
+  }, [categories, currentCategoryId, collectionParam]);
 
   if (isLoadingInitial) return <LoadingSkeleton />;
 
@@ -233,10 +250,23 @@ function HomePage() {
       {/* ── Hero heading (left-aligned) ── */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-4xl md:text-6xl font-black uppercase text-[#00674f] tracking-tighter leading-none">
-          Exquisite <span className="text-black">Collections</span>
+          {collectionParam ? (
+            <>
+              Featured <span className="text-black">{collectionParam.replace('-', ' ')}</span>
+            </>
+          ) : (
+            <>
+              Exquisite <span className="text-black">Collections</span>
+            </>
+          )}
         </h1>
         <p className="mt-2 text-gray-500 text-xs sm:text-sm font-medium max-w-sm sm:max-w-lg">
-          Discover our curated selection of premium {currentCategoryName.toLowerCase()} for the modern connoisseur.
+          {collectionParam === 'best-sellers' 
+            ? 'Discover our most-loved icons, rated highest by our community.'
+            : collectionParam === 'new-arrivals'
+            ? 'Be the first to explore our latest designs and artisanal finishes.'
+            : `Discover our curated selection of premium ${currentCategoryName.toLowerCase()} for the modern connoisseur.`
+          }
         </p>
       </div>
 

@@ -5,8 +5,8 @@ import cartGIcon from '../../assets/icons/cartG.svg';
 const BestSellers = () => {
     const { data: products, isLoading } = useGetProductsQuery();
 
-    // Select featured icon products
-    const featuredProducts = products?.slice(0, 4) || [];
+    // Filter for products with rating >= 4.5
+    const featuredProducts = products?.filter(p => (p.rating?.rate ?? 0) >= 4.5).slice(0, 4) || [];
 
     if (isLoading) return (
         <div className="py-20 flex justify-center items-center">
@@ -15,7 +15,7 @@ const BestSellers = () => {
     );
 
     return (
-        <section className="py-24 md:py-32 px-4 md:px-12 max-w-[1440px] mx-auto">
+        <section id="best-sellers" className="py-24 md:py-32 px-4 md:px-12 max-w-[1440px] mx-auto">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
                 <div className="space-y-4">
                     <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400">Our Curated Classics</span>

@@ -23,7 +23,7 @@ const NewArrivals = () => {
     if (error) return null;
 
     return (
-        <section className="py-20 bg-[#f0fbf9] -mx-4 px-4 md:-mx-12 md:px-12">
+        <section id="new-arrivals" className="py-20 bg-[#f0fbf9] -mx-4 px-4 md:-mx-12 md:px-12">
             {/* Centered Heading with Gold Underline */}
             <div className="text-center mb-16 max-w-4xl mx-auto px-4">
                 <h2 className="text-4xl md:text-5xl font-black uppercase text-[#00674f] tracking-tight mb-4">

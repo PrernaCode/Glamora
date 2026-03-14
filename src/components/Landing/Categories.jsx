@@ -21,7 +21,7 @@ const Categories = () => {
     if (error) return null;
 
     return (
-        <section className="py-20 px-4 md:px-12 max-w-[1440px] mx-auto">
+        <section id="categories" className="py-20 px-4 md:px-12 max-w-[1440px] mx-auto">
             <div className="flex items-end justify-between mb-12">
                 <div className="space-y-2">
                     <h2 className="text-4xl md:text-5xl font-black uppercase text-[#00674f] tracking-tight">
