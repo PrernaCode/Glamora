@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useGetProductsByCategoryQuery } from '../../redux/slices/productsApi';
 import cartGIcon from '../../assets/icons/cartG.svg';
 
@@ -52,8 +53,9 @@ const NewArrivals = () => {
                     className="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth pb-12"
                 >
                     {products?.map((product) => (
-                        <div
+                        <Link
                             key={product.id}
+                            to={`/product/${product.id}`}
                             className="flex-none w-[300px] md:w-[350px] bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group border border-gray-50/50"
                         >
                             {/* Product Image */}
@@ -84,12 +86,15 @@ const NewArrivals = () => {
                                     <p className="text-[#D4AF37] font-black text-xl">
                                         ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0 })}
                                     </p>
-                                    <button className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-[#00674f] hover:border-[#00674f] transition-all duration-300 group/cart shadow-sm">
+                                    <button
+                                        onClick={(e) => e.preventDefault()}
+                                        className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-[#00674f] hover:border-[#00674f] transition-all duration-300 group/cart shadow-sm"
+                                    >
                                         <img src={cartGIcon} alt="Add to cart" className="w-5 h-5 group-hover/cart:brightness-0 group-hover/cart:invert" />
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>

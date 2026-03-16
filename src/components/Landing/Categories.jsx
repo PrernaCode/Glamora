@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useGetCategoriesQuery } from '../../redux/slices/productsApi';
 
 const Categories = () => {
@@ -40,8 +41,9 @@ const Categories = () => {
                     className="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth pb-8"
                 >
                     {categories?.map((category) => (
-                        <div
+                        <Link
                             key={category.id}
+                            to={`/homepage?category=${encodeURIComponent(category.name.toLowerCase())}`}
                             className="flex-none w-[280px] md:w-[350px] aspect-[4/5] relative rounded-[3rem] overflow-hidden group cursor-pointer shadow-md hover:shadow-2xl transition-all duration-700"
                         >
                             <img
@@ -63,7 +65,7 @@ const Categories = () => {
 
                             {/* Subtle border effect */}
                             <div className="absolute inset-4 border border-white/20 rounded-[2.5rem] pointer-events-none transition-all duration-500 group-hover:inset-6"></div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>

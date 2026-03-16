@@ -119,10 +119,11 @@ function HomePage() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
 
-  // Read ?search= and ?collection= from URL
+  // Read ?search=, ?collection=, and ?category= from URL
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
   const collectionParam = searchParams.get('collection') || '';
+  const categoryParam = searchParams.get('category') || ''; // e.g. "shoes", "clothes"
 
   const handleLoginRequired = () => setIsLoginModalOpen(true);
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
@@ -131,16 +132,22 @@ function HomePage() {
   // URL search (from header) takes priority over local state search
   const effectiveSearch = urlSearch || debouncedSearchTerm;
 
-  // Default to "All" category on first load, unless a collection is specified
+  // Default to category / collection from URL params on first load
   useEffect(() => {
-    if (selectedCategory === null) {
-      if (collectionParam === 'new-arrivals') {
-        setSelectedCategory(8); // New Arrivals category
-      } else {
-        setSelectedCategory('all');
-      }
+    if (selectedCategory !== null) return; // already set
+
+    if (categoryParam && categories) {
+      // Resolve category name → ID
+      const match = categories.find(
+        c => c.name.toLowerCase() === categoryParam.toLowerCase()
+      );
+      setSelectedCategory(match ? match.id : 'all');
+    } else if (collectionParam === 'new-arrivals') {
+      setSelectedCategory(8);
+    } else {
+      setSelectedCategory('all');
     }
-  }, [selectedCategory, collectionParam]);
+  }, [selectedCategory, collectionParam, categoryParam, categories]);
 
   // Reset page on filter / search change
   useEffect(() => { setPage(0); }, [selectedCategory, effectiveSearch, collectionParam]);

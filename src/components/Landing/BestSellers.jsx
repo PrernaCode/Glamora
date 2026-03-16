@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useGetProductsQuery } from '../../redux/slices/productsApi';
 import cartGIcon from '../../assets/icons/cartG.svg';
 
@@ -32,8 +33,9 @@ const BestSellers = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                 {featuredProducts.map((product) => (
-                    <div
+                    <Link
                         key={product.id}
+                        to={`/product/${product.id}`}
                         className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 border border-gray-50/50"
                     >
                         {/* Image Container */}
@@ -62,12 +64,15 @@ const BestSellers = () => {
                                 <p className="text-[#D4AF37] font-black text-2xl">
                                     ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0 })}
                                 </p>
-                                <button className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center hover:bg-[#00674f] hover:border-[#00674f] transition-all duration-300 group/cart shadow-sm">
+                                <button
+                                    onClick={(e) => e.preventDefault()}
+                                    className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center hover:bg-[#00674f] hover:border-[#00674f] transition-all duration-300 group/cart shadow-sm"
+                                >
                                     <img src={cartGIcon} alt="Add to cart" className="w-6 h-6 group-hover/cart:brightness-0 group-hover/cart:invert" />
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </section>
