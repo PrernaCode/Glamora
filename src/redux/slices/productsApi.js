@@ -14,6 +14,16 @@ const mapProduct = (product) => ({
   },
 });
 
+/**
+ * Sanitizes search terms by stripping HTML tags (XSS prevention)
+ * and escaping Postgres special characters (% and _) for ilike queries.
+ */
+const sanitizeSearchTerm = (term) => {
+  if (!term) return '';
+  const stripped = term.replace(/<[^>]*>?/gm, ''); // Strip HTML
+  return stripped.replace(/[%_]/g, '\\\\$&'); // Escape % and _ with \\
+};
+
 export const productsApi = createApi({
   reducerPath: 'productsApi',
   baseQuery: fakeBaseQuery(),
@@ -159,7 +169,7 @@ export const productsApi = createApi({
               rating_rate, rating_count,
               category:categories(name)
             `)
-            .ilike('title', `%${searchTerm}%`)
+            .ilike('title', `%${sanitizeSearchTerm(searchTerm)}%`)
             .order('created_at', { ascending: false })
             .range(from, to);
 
@@ -184,7 +194,7 @@ export const productsApi = createApi({
           const { data, error } = await supabase
             .from('products')
             .select('id, title')
-            .ilike('title', `%${searchTerm}%`)
+            .ilike('title', `%${sanitizeSearchTerm(searchTerm)}%`)
             .limit(5);
           if (error) throw error;
           return { data };

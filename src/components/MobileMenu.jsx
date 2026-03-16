@@ -68,6 +68,7 @@ function MobileMenu({
                 placeholder="Search products..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
+                maxLength={50}
                 className="bg-transparent text-sm w-full focus:outline-none placeholder:text-gray-400 font-medium"
                 autoComplete="off"
               />

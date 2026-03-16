@@ -44,7 +44,7 @@ function Header() {
 
   const handleSubmit = (e) => {
     e?.preventDefault();
-    const term = searchInput.trim();
+    const term = searchInput.trim().substring(0, 50);
     setShowSuggestions(false);
     if (term) {
       navigate(`/homepage?search=${encodeURIComponent(term)}`);
@@ -128,13 +128,14 @@ function Header() {
                   <svg className="w-4 h-4 mr-2 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <input
+                   <input
                     type="text"
                     placeholder="Search collection..."
                     value={searchInput}
                     onChange={(e) => { setSearchInput(e.target.value); setShowSuggestions(true); }}
                     onFocus={() => { if (searchInput.trim().length >= 2) setShowSuggestions(true); }}
                     onKeyDown={handleKeyDown}
+                    maxLength={50}
                     className="bg-transparent text-xs w-full focus:outline-none placeholder:text-gray-400 text-black font-medium"
                     aria-label="Search products"
                     autoComplete="off"

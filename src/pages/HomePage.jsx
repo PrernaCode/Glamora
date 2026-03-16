@@ -129,8 +129,9 @@ function HomePage() {
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
   const { data: categories } = useGetCategoriesQuery();
 
-  // URL search (from header) takes priority over local state search
-  const effectiveSearch = urlSearch || debouncedSearchTerm;
+  // URL search (from header) takes priority over local state search.
+  // We trim and truncate to 50 chars for security consistency.
+  const effectiveSearch = (urlSearch.trim().substring(0, 50)) || debouncedSearchTerm;
 
   // Default to category / collection from URL params on first load
   useEffect(() => {
