@@ -57,11 +57,11 @@ export const productsApi = createApi({
       serializeQueryArgs: ({ endpointName }) => {
         return endpointName;
       },
-      merge: (currentCacheData, newItemsData) => {
-        if (currentCacheData) {
-          return [...currentCacheData, ...newItemsData];
-        }
-        return newItemsData;
+      merge: (currentCacheData, newItemsData, { arg: page }) => {
+        if (page === 0) return newItemsData;
+        const existingIds = new Set(currentCacheData?.map(i => i.id));
+        const filteredNew = newItemsData.filter(i => !existingIds.has(i.id));
+        return [...(currentCacheData || []), ...filteredNew];
       },
       forceRefetch({ currentArg, previousArg }) {
         return currentArg !== previousArg;
@@ -139,11 +139,11 @@ export const productsApi = createApi({
       serializeQueryArgs: ({ queryArgs }) => {
         return queryArgs.categoryId;
       },
-      merge: (currentCacheData, newItemsData) => {
-        if (currentCacheData) {
-          return [...currentCacheData, ...newItemsData];
-        }
-        return newItemsData;
+      merge: (currentCacheData, newItemsData, { arg }) => {
+        if (arg.page === 0) return newItemsData;
+        const existingIds = new Set(currentCacheData?.map(i => i.id));
+        const filteredNew = newItemsData.filter(i => !existingIds.has(i.id));
+        return [...(currentCacheData || []), ...filteredNew];
       },
       forceRefetch({ currentArg, previousArg }) {
         return currentArg?.page !== previousArg?.page || currentArg?.categoryId !== previousArg?.categoryId;

@@ -6,13 +6,6 @@ const Categories = () => {
     const { data: categories, isLoading, error } = useGetCategoriesQuery();
     const scrollRef = useRef(null);
 
-    const scroll = (direction) => {
-        const { current } = scrollRef;
-        if (current) {
-            const scrollAmount = direction === 'left' ? -400 : 400;
-            current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
-    };
 
     if (isLoading) return (
         <div className="py-20 flex justify-center items-center">

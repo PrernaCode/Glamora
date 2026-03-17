@@ -56,7 +56,18 @@ const ProductCard = memo(({ product, onAddToCart, onLoginRequired }) => {
 
       {/* Info */}
       <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2">
-        <p className="text-[9px] sm:text-[10px] font-black tracking-widest text-gray-400 uppercase truncate">{product.category || 'Collection'}</p>
+        <div className="flex items-center justify-between gap-1">
+          <p className="text-[9px] sm:text-[10px] font-black tracking-widest text-gray-400 uppercase truncate">{product.category || 'Collection'}</p>
+          {(product.rating?.rate > 0 || product.rating?.count > 0) ? (
+            <div className="flex items-center gap-1 shrink-0 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100/50">
+              {/* Golden Star SVG */}
+              <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              <span className="text-[10px] sm:text-[11px] font-bold text-gray-800">{product.rating.rate}</span>
+            </div>
+          ) : null}
+        </div>
         <Link to={`/product/${product.id}`}>
           <h3 className="text-[11px] sm:text-sm font-extrabold text-[#00674f] leading-snug uppercase hover:text-black transition-colors duration-300 line-clamp-2">
             {product.title}
@@ -133,12 +144,9 @@ function HomePage() {
   // We trim and truncate to 50 chars for security consistency.
   const effectiveSearch = (urlSearch.trim().substring(0, 50)) || debouncedSearchTerm;
 
-  // Default to category / collection from URL params on first load
+  // Sync category / collection from URL params (reacts to header navigation)
   useEffect(() => {
-    if (selectedCategory !== null) return; // already set
-
     if (categoryParam && categories) {
-      // Resolve category name → ID
       const match = categories.find(
         c => c.name.toLowerCase() === categoryParam.toLowerCase()
       );
@@ -148,10 +156,19 @@ function HomePage() {
     } else {
       setSelectedCategory('all');
     }
-  }, [selectedCategory, collectionParam, categoryParam, categories]);
+
+    // Reset rating if we change collections/categories unless it's best-sellers
+    // (Or we could leave it, but for clean nav from header, resetting simplifies it)
+    if (collectionParam !== 'best-sellers') {
+      setSelectedRating(null);
+    }
+  }, [collectionParam, categoryParam, categories]);
 
   // Reset page on filter / search change
-  useEffect(() => { setPage(0); }, [selectedCategory, effectiveSearch, collectionParam]);
+  useEffect(() => {
+    setPage(0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [selectedCategory, effectiveSearch, collectionParam]);
 
   const currentCategoryId = selectedCategory ?? 'all';
   const isSearchActive = effectiveSearch.trim().length > 0;
@@ -222,7 +239,7 @@ function HomePage() {
   const handleCategoryChange = useCallback((id) => {
     setSelectedCategory(id);
     setSearchTerm('');
-    
+
     // Create a new URLSearchParams object to safely update the URL
     const newParams = new URLSearchParams(searchParams);
     newParams.delete('search');
@@ -269,11 +286,11 @@ function HomePage() {
           )}
         </h1>
         <p className="mt-2 text-gray-500 text-xs sm:text-sm font-medium max-w-sm sm:max-w-lg">
-          {collectionParam === 'best-sellers' 
+          {collectionParam === 'best-sellers'
             ? 'Discover our most-loved icons, rated highest by our community.'
             : collectionParam === 'new-arrivals'
-            ? 'Be the first to explore our latest designs and artisanal finishes.'
-            : `Discover our curated selection of premium ${currentCategoryName.toLowerCase()} for the modern connoisseur.`
+              ? 'Be the first to explore our latest designs and artisanal finishes.'
+              : `Discover our curated selection of premium ${currentCategoryName.toLowerCase()} for the modern connoisseur.`
           }
         </p>
       </div>
