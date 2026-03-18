@@ -1,0 +1,213 @@
+/* =============================================================
+   Product Detail Page  — Premium Styles
+   ============================================================= */
+
+/* Page fade-in */
+.pdp-container {
+  opacity: 0;
+  animation: fadeIn 0.7s ease-out forwards;
+}
+
+/* ── Product Image ── */
+.pdp-image-main {
+  position: relative;
+  border-radius: 2rem;
+  background: #f9f9f9;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  transition: box-shadow 0.4s ease;
+}
+
+.pdp-image-main:hover {
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Details panel animation ── */
+.pdp-details-container {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: slideUp 0.7s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.15s;
+}
+
+/* ── Category tag ── */
+.pdp-category-tag {
+  display: inline-block;
+  padding: 0.35rem 1rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: #3EB489;
+  background: rgba(62, 180, 137, 0.08);
+  border: 1px solid rgba(62, 180, 137, 0.2);
+  border-radius: 99px;
+}
+
+/* ── Product Title ── */
+.pdp-product-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #000;
+  color: rgb(87, 86, 86);
+}
+
+/* ── Price ── */
+.pdp-price {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #000;
+}
+
+/* ── Divider ── */
+.pdp-divider {
+  height: 1px;
+  width: 100%;
+  background: #f0f0f0;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Feature icon wrapper ── */
+.pdp-feature-icon-wrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  padding: 0.6rem;
+  border-radius: 0.875rem;
+  background: rgba(62, 180, 137, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Add to Bag (Cart) Button ── */
+.pdp-btn-cart {
+  padding: 1.1rem 2rem;
+  background: #3EB489;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border-radius: 99px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  box-shadow: 0 10px 25px -5px rgba(62, 180, 137, 0.3);
+}
+
+.pdp-btn-cart:hover {
+  background: #349e78;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -8px rgba(62, 180, 137, 0.45);
+}
+
+.pdp-btn-cart:active {
+  transform: translateY(0);
+}
+
+/* ── Add to Wishlist Button ── */
+.pdp-btn-wishlist {
+  padding: 1rem 2rem;
+  border-radius: 99px;
+  border: 1.5px solid #3EB489;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: #3EB489;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.pdp-btn-wishlist:hover {
+  background: rgba(62, 180, 137, 0.05);
+  transform: translateY(-1px);
+}
+
+/* ── Secondary "Checkout" Button ── */
+.pdp-btn-secondary {
+  padding: 0.85rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #707070;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+}
+
+.pdp-btn-secondary:hover {
+  color: #000;
+  letter-spacing: 0.3em;
+}
+
+/* ── Related Products Horizontal Slider ── */
+.pdp-related-slider {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 1.5rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pdp-related-slider::-webkit-scrollbar {
+  height: 4px;
+}
+
+.pdp-related-slider::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.pdp-related-slider::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.pdp-related-card {
+  width: 280px;
+  min-width: 280px;
+  scroll-snap-align: start;
+}
+
+/* ── Review Card ── */
+.pdp-review-card {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  transition: box-shadow 0.3s ease;
+}
+
+.pdp-review-card:hover {
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .pdp-product-title {
+    font-size: 1.6rem;
+  }
+
+  .pdp-price {
+    font-size: 1.4rem;
+  }
+
+  .pdp-image-main {
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+  }
+}
