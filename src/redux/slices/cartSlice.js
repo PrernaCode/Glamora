@@ -30,6 +30,7 @@ export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
   async (userId, { rejectWithValue }) => {
     try {
+      // Step 1: fetch cart items (safe, no join)
       const { data, error } = await supabase
         .from('cart_items')
         .select('*')
@@ -37,11 +38,25 @@ export const fetchCart = createAsyncThunk(
 
       if (error) throw error;
 
+      // Step 2: fetch category_ids for those product ids (lightweight, separate query)
+      let categoryMap = {};
+      if (data.length > 0) {
+        const productIds = data.map(i => i.product_id);
+        const { data: prodData } = await supabase
+          .from('products')
+          .select('id, category_id')
+          .in('id', productIds);
+        if (prodData) {
+          prodData.forEach(p => { categoryMap[p.id] = p.category_id; });
+        }
+      }
+
       const items = data.map(item => ({
         ...item,
         id: item.product_id, // Map product_id to id for UI compatibility
         totalPrice: item.price_at_addition * item.quantity,
         price: item.price_at_addition,
+        category_id: categoryMap[item.product_id] ?? null,
       }));
 
       const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -68,6 +83,7 @@ export const syncCartItem = createAsyncThunk(
           price_at_addition: item.price,
           title: item.title,
           image: item.image,
+          // category_id is NOT in cart_items table — carry it in memory only
         }, { onConflict: 'user_id, product_id' })
         .select()
         .single();

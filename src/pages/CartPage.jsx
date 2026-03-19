@@ -264,7 +264,7 @@ function CartPage() {
                 {isAuthenticated ? 'Secure Checkout' : 'Login to Checkout'}
               </button>
 
-              <Link to="/" className="cart-continue-link">← Continue Shopping</Link>
+              <Link to="/homepage" className="cart-continue-link">← Continue Shopping</Link>
 
               {/* Secure note */}
               <div className="cart-secure-note">
