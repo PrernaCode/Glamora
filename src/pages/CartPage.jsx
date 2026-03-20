@@ -156,7 +156,7 @@ function CartPage() {
             <h2 className="cart-empty-title">Your bag is empty</h2>
             <p className="cart-empty-subtitle">Add some luxury items to get started!</p>
             <Link
-              to="/"
+              to="/homepage"
               className="cart-checkout-btn mt-6"
               style={{ display: 'inline-block', width: 'auto', padding: '1rem 2.5rem' }}
             >

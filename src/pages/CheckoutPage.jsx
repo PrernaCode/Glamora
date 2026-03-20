@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { updateProfile } from '../redux/slices/authSlice';
@@ -8,6 +8,10 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useToast } from '../components/Toast';
+import './CheckoutPage.css';
+
+// Icons
+import arrowLeft from '../assets/icons/arrowLeft.svg';
 
 // Validation schema
 const schema = yup.object({
@@ -21,16 +25,19 @@ const schema = yup.object({
 }).required();
 
 function CheckoutPage() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [shippingMethod, setShippingMethod] = useState('standard');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { addToast } = useToast();
+
   const cartItems = useSelector(state => state.cart.items);
   const totalAmount = useSelector(state => state.cart.totalAmount);
   const user = useSelector(state => state.auth.user);
   const profile = useSelector(state => state.auth.profile);
   const { loading } = useSelector(state => state.orders);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, trigger, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       fullName: '',
@@ -58,7 +65,8 @@ function CheckoutPage() {
     }
   }, [user, profile, reset]);
 
-  const onSubmit = async (data) => {
+  // Order Placement logic (Step 3 final CTA)
+  const onFinalSubmit = async (data) => {
     if (!user) {
       addToast('Please login to place an order', 'error');
       navigate('/login');
@@ -66,15 +74,13 @@ function CheckoutPage() {
     }
 
     try {
-      // 1. Place the order
       await dispatch(placeOrder({
         userId: user.id,
         items: cartItems,
         shippingAddress: data,
-        totalAmount: totalAmount,
+        totalAmount: totalAmount + (shippingMethod === 'express' ? 25 : 0),
       })).unwrap();
 
-      // 2. Optional: Save/Update profile details if requested
       if (data.saveToProfile) {
         await dispatch(updateProfile({
           id: user.id,
@@ -96,214 +102,255 @@ function CheckoutPage() {
     }
   };
 
+  const nextStep = async () => {
+    if (currentStep === 1) {
+      const isValid = await trigger();
+      if (!isValid) return;
+    }
+    setCurrentStep(prev => Math.min(prev + 1, 3));
+    window.scrollTo(0, 0);
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+    window.scrollTo(0, 0);
+  };
+
   if (cartItems.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
-        <button
-          onClick={() => navigate('/')}
-          className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800"
-        >
-          Continue Shopping
-        </button>
+      <div className="co-page flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="co-section-title">Your cart is empty</h2>
+          <button onClick={() => navigate('/')} className="co-btn-primary" style={{ maxWidth: '250px' }}>
+            Continue Shopping
+          </button>
+        </div>
       </div>
     );
   }
 
+  const shippingCost = shippingMethod === 'express' ? 25 : 0;
+  const finalTotal = totalAmount + shippingCost;
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-6">Shipping Information</h2>
-
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name *
-                </label>
-                <input
-                  {...register('fullName')}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.fullName ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  placeholder="John Doe"
-                />
-                {errors.fullName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
-                )}
+    <div className="co-page">
+      <div className="co-container">
+        <div className="co-layout">
+          
+          {/* ── Left Side: Steps ── */}
+          <div className="co-main">
+            
+            {/* Stepper */}
+            <div className="co-stepper">
+              <div className={`co-step ${currentStep >= 1 ? 'active' : ''} ${currentStep > 1 ? 'completed' : ''}`}>
+                <div className="co-step-dot">{currentStep > 1 ? '✓' : '1'}</div>
+                <span className="co-step-label">Shipping</span>
               </div>
+              <div className={`co-step ${currentStep >= 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
+                <div className="co-step-dot">{currentStep > 2 ? '✓' : '2'}</div>
+                <span className="co-step-label">Delivery</span>
+              </div>
+              <div className={`co-step ${currentStep >= 3 ? 'active' : ''}`}>
+                <div className="co-step-dot">3</div>
+                <span className="co-step-label">Payment</span>
+              </div>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email *
-                  </label>
-                  <input
-                    {...register('email')}
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.email ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    placeholder="you@example.com"
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                  )}
+            <form onSubmit={handleSubmit(onFinalSubmit)}>
+              
+              {/* Step 1: Shipping Details */}
+              {currentStep === 1 && (
+                <div className="co-form-section animate-in fade-in duration-500">
+                  <div className="flex items-center gap-3 mb-8">
+                    <svg width="22" height="22" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path 
+                        fill-rule="evenodd" 
+                        clip-rule="evenodd" 
+                        d="M4 6V4C4 1.79086 5.79086 0 8 0C10.2091 0 12 1.79086 12 4V6H14V16H2V6H4ZM6 4C6 2.89543 6.89543 2 8 2C9.10457 2 10 2.89543 10 4V6H6V4ZM7 13V9H9V13H7Z" 
+                        fill="var(--mint-green)"
+                      />
+                    </svg>
+                    <h2 className="co-section-title mb-0">Shipping Details</h2>
+                  </div>
+                  
+                  <div className="co-input-group">
+                    <label className="co-label">Full Name</label>
+                    <input {...register('fullName')} className={`co-input ${errors.fullName ? 'error' : ''}`} placeholder="Enter your full name" />
+                    {errors.fullName && <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider">{errors.fullName.message}</p>}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="co-input-group">
+                      <label className="co-label">Email Address</label>
+                      <input {...register('email')} className={`co-input ${errors.email ? 'error' : ''}`} placeholder="Email" />
+                      {errors.email && <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider">{errors.email.message}</p>}
+                    </div>
+                    <div className="co-input-group">
+                      <label className="co-label">Phone Number</label>
+                      <input {...register('phone')} className={`co-input ${errors.phone ? 'error' : ''}`} placeholder="Phone" />
+                      {errors.phone && <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider">{errors.phone.message}</p>}
+                    </div>
+                  </div>
+
+                  <div className="co-input-group">
+                    <label className="co-label">Shipping Address</label>
+                    <input {...register('address')} className={`co-input ${errors.address ? 'error' : ''}`} placeholder="Street, building, etc." />
+                    {errors.address && <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider">{errors.address.message}</p>}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="co-input-group">
+                      <label className="co-label">City</label>
+                      <input {...register('city')} className={`co-input ${errors.city ? 'error' : ''}`} placeholder="City" />
+                    </div>
+                    <div className="co-input-group">
+                      <label className="co-label">State</label>
+                      <input {...register('state')} className={`co-input ${errors.state ? 'error' : ''}`} placeholder="State" />
+                    </div>
+                    <div className="co-input-group">
+                      <label className="co-label">Pincode</label>
+                      <input {...register('pincode')} className={`co-input ${errors.pincode ? 'error' : ''}`} placeholder="Zip" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-4">
+                    <input type="checkbox" id="saveToProfile" {...register('saveToProfile')} className="accent-black w-4 h-4" />
+                    <label htmlFor="saveToProfile" className="text-[12px] text-gray-500 cursor-pointer">Save details for next time</label>
+                  </div>
+
+                  <button type="button" onClick={nextStep} className="co-btn-primary">
+                    Continue to Delivery
+                  </button>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone *
-                  </label>
-                  <input
-                    {...register('phone')}
-                    maxLength="10"
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    placeholder="9876543210"
-                  />
-                  {errors.phone && (
-                    <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
-                  )}
+              {/* Step 2: Delivery Method */}
+              {currentStep === 2 && (
+                <div className="co-form-section animate-in slide-in-from-right-4 duration-500">
+                  <h2 className="co-section-title">Delivery Method</h2>
+                  
+                  <div 
+                    className={`co-delivery-option ${shippingMethod === 'standard' ? 'active' : ''}`}
+                    onClick={() => setShippingMethod('standard')}
+                  >
+                    <div className="co-delivery-radio" />
+                    <div className="co-delivery-info">
+                      <span className="co-delivery-name">Standard Delivery</span>
+                      <span className="co-delivery-time">3-5 business days</span>
+                    </div>
+                    <span className="co-delivery-price">Free</span>
+                  </div>
+
+                  <div 
+                    className={`co-delivery-option ${shippingMethod === 'express' ? 'active' : ''}`}
+                    onClick={() => setShippingMethod('express')}
+                  >
+                    <div className="co-delivery-radio" />
+                    <div className="co-delivery-info">
+                      <span className="co-delivery-name">Express Shipping</span>
+                      <span className="co-delivery-time">1-2 business days</span>
+                    </div>
+                    <span className="co-delivery-price">$25.00</span>
+                  </div>
+
+                  <div className="flex flex-col gap-2 mt-8">
+                    <button type="button" onClick={nextStep} className="co-btn-primary">
+                      Continue to Payment
+                    </button>
+                    <button type="button" onClick={prevStep} className="co-btn-secondary">
+                      <img src={arrowLeft} alt="" width="14" /> Return to Shipping
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Address *
-                </label>
-                <textarea
-                  {...register('address')}
-                  rows="3"
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.address ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  placeholder="House no, Street, Locality"
-                />
-                {errors.address && (
-                  <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
-                )}
-              </div>
+              {/* Step 3: Payment (UI ONLY) */}
+              {currentStep === 3 && (
+                <div className="co-form-section animate-in slide-in-from-right-4 duration-500">
+                  <h2 className="co-section-title">Secure Payment</h2>
+                  
+                  <div className="co-input-group">
+                    <label className="co-label">Card Number</label>
+                    <input className="co-input" placeholder="0000 0000 0000 0000" disabled />
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City *
-                  </label>
-                  <input
-                    {...register('city')}
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.city ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    placeholder="Mumbai"
-                  />
-                  {errors.city && (
-                    <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>
-                  )}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="co-input-group">
+                      <label className="co-label">Expiry Date</label>
+                      <input className="co-input" placeholder="MM / YY" disabled />
+                    </div>
+                    <div className="co-input-group">
+                      <label className="co-label">CVC / CVV</label>
+                      <input className="co-input" placeholder="000" disabled />
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center mt-4">
+                    <p className="text-[11px] text-gray-500 uppercase tracking-widest">Credit Card Simulation Only</p>
+                  </div>
+
+                  <div className="flex flex-col gap-2 mt-8">
+                    <button type="submit" disabled={loading} className="co-btn-primary">
+                      {loading ? 'Processing...' : `Place Order • $${finalTotal.toFixed(2)}`}
+                    </button>
+                    <button type="button" onClick={prevStep} className="co-btn-secondary">
+                      <img src={arrowLeft} alt="" width="14" /> Back to Delivery
+                    </button>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    State *
-                  </label>
-                  <input
-                    {...register('state')}
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.state ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    placeholder="Maharashtra"
-                  />
-                  {errors.state && (
-                    <p className="text-red-500 text-sm mt-1">{errors.state.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Pincode *
-                  </label>
-                  <input
-                    {...register('pincode')}
-                    maxLength="6"
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.pincode ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    placeholder="400001"
-                  />
-                  {errors.pincode && (
-                    <p className="text-red-500 text-sm mt-1">{errors.pincode.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="saveToProfile"
-                  {...register('saveToProfile')}
-                  className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
-                />
-                <label htmlFor="saveToProfile" className="text-sm text-gray-600 cursor-pointer">
-                  Save this information to my profile for future orders
-                </label>
-              </div>
-
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition font-semibold flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''
-                    }`}
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    'Place Order'
-                  )}
-                </button>
-              </div>
+              )}
             </form>
           </div>
-        </div>
 
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-
-            <div className="space-y-3 mb-4">
+          {/* ── Right Side: Order Summary ── */}
+          <div className="co-summary-sidebar">
+            <h2 className="co-summary-title">Order Summary</h2>
+            
+            <div className="co-items-list max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {cartItems.map(item => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    {item.title || item.name} x {item.quantity}
-                  </span>
-                  <span className="font-semibold">
-                    ${item.totalPrice.toFixed(2)}
-                  </span>
+                <div key={item.id} className="co-cart-item">
+                  <div className="co-item-img">
+                    <img src={item.image} alt={item.title} />
+                  </div>
+                  <div className="co-item-info">
+                    <h3 className="co-item-title">{item.title || item.name}</h3>
+                    <div className="flex justify-between items-end mt-2">
+                       <span className="co-item-qty">Qty: {item.quantity}</span>
+                       <span className="co-item-price">${item.totalPrice.toFixed(0)}</span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
 
-            <div className="border-t pt-3 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-semibold">${totalAmount.toFixed(2)}</span>
+            <div className="co-breakdown">
+              <div className="co-line-item">
+                <span>Subtotal</span>
+                <span>${totalAmount.toFixed(0)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shipping</span>
-                <span className="font-semibold text-green-600">FREE</span>
+              <div className="co-line-item">
+                <span>Shipping</span>
+                <span>{shippingCost === 0 ? 'Free' : `$${shippingCost}`}</span>
               </div>
-              <div className="border-t pt-2 flex justify-between">
-                <span className="text-lg font-bold">Total</span>
-                <span className="text-lg font-bold">${totalAmount.toFixed(2)}</span>
+              <div className="co-line-item">
+                <span>Estimated Tax (18%)</span>
+                <span>$0</span>
+              </div>
+              <div className="co-line-item total">
+                <span>Order Total</span>
+                <span>${finalTotal.toFixed(0)}</span>
               </div>
             </div>
+
+            <div className="mt-8 pt-6 border-t border-gray-100 italic text-[11px] text-gray-400 text-center">
+              All transactions are secure and encrypted.
+            </div>
           </div>
+
         </div>
       </div>
     </div>
   );
 }
 
-export default CheckoutPage;
+export default CheckoutPage;

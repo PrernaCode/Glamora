@@ -8,9 +8,6 @@ import ProductImage from '../components/ProductImage';
 import LandingFooter from '../components/Landing/LandingFooter';
 import { useGetProductsQuery } from '../redux/slices/productsApi';
 import './WishlistPage.css';
-
-// Icons from assets
-import closeIcon from '../assets/icons/close.svg';
 import cartGIcon from '../assets/icons/cartG.svg';
 import heartOutlinedIcon from '../assets/icons/heart_outlined.svg';
 
