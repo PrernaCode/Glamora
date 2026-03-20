@@ -38,8 +38,10 @@ export const toggleWishlistItem = createAsyncThunk(
                     .insert({
                         user_id: userId,
                         product_id: product.id,
-                        title: product.title,
-                        image: product.image
+                        title: product.title || '',
+                        image: product.image || '',
+                        price: product.price || 0,
+                        category: product.category || ''
                     })
                     .select()
                     .single();

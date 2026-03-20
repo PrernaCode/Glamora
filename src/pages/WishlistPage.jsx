@@ -1,30 +1,51 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { toggleWishlistItem } from '../redux/slices/wishlistSlice';
 import { addToCart } from '../redux/slices/cartSlice';
 import { useToast } from '../components/Toast';
 import ProductImage from '../components/ProductImage';
+import LandingFooter from '../components/Landing/LandingFooter';
+import { useGetProductsQuery } from '../redux/slices/productsApi';
+import './WishlistPage.css';
 
-const Icons = {
-    Trash: () => (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    ),
-    Cart: () => (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7.2998 5H22L20 12H8.37675M21 16H9L7 3H4M4 8H2M5 11H2M6 14H2M10 20C10 20.5523 9.55228 21 9 21C8.44772 21 8 20.5523 8 20C8 19.4477 8.44772 19 9 19C9.55228 19 10 19.4477 10 20ZM21 20C21 20.5523 20.5523 21 20 21C19.4477 21 19 20.5523 19 20C19 19.4477 19.4477 19 20 19C20.5523 19 21 19.4477 21 20Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    )
-};
+// Icons from assets
+import closeIcon from '../assets/icons/close.svg';
+import cartGIcon from '../assets/icons/cartG.svg';
+import heartOutlinedIcon from '../assets/icons/heart_outlined.svg';
+
+/* ── Mint-green filter for icons ─────────────────────────────── */
+const MINT_FILTER = 'invert(64%) sepia(35%) saturate(543%) hue-rotate(113deg) brightness(92%) contrast(88%)';
+
+/* ─────────────────────────────────────────────────────────────── */
 
 function WishlistPage() {
     const dispatch = useDispatch();
     const { addToast } = useToast();
+    const sliderRef = useRef(null);
+
     const user = useSelector(state => state.auth.user);
     const wishlistItems = useSelector(state => state.wishlist.items);
 
+    /* ── Recommendations: grab first page of all products ── */
+    const { data: allProducts } = useGetProductsQuery(0);
+    const wishlistIds = wishlistItems.map(i => i.product_id);
+    const relatedProducts = allProducts
+        ? allProducts.filter(p => !wishlistIds.includes(p.id)).slice(0, 10)
+        : [];
+
+    /* ── Enrich wishlist items with missing metadata (price/category) ── */
+    const enrichedWishlist = wishlistItems.map(item => {
+        if (item.price && item.category) return item;
+        const matchingProduct = allProducts?.find(p => p.id === item.product_id);
+        return {
+            ...item,
+            price: item.price || matchingProduct?.price || 0,
+            category: item.category || matchingProduct?.category || 'Collection'
+        };
+    });
+
+    /* ── Handlers ── */
     const handleRemove = (item) => {
         dispatch(toggleWishlistItem({ userId: user.id, product: { id: item.product_id, title: item.title } }));
         addToast('Removed from wishlist', 'success');
@@ -37,7 +58,7 @@ function WishlistPage() {
             image: item.image,
             price: item.price || 0,
         }));
-        addToast('Added to bag', 'success');
+        addToast(`${item.title?.substring(0, 28)}... added to bag`, 'success');
     };
 
     const handleMoveAllToBag = () => {
@@ -49,71 +70,171 @@ function WishlistPage() {
                 price: item.price || 0,
             }));
         });
-        addToast(`Moved ${wishlistItems.length} items to bag`, 'success');
+        addToast(`Moved ${wishlistItems.length} item${wishlistItems.length > 1 ? 's' : ''} to bag`, 'success');
     };
 
+    const scrollSlider = (dir) => {
+        if (!sliderRef.current) return;
+        sliderRef.current.scrollBy({ left: dir * 240, behavior: 'smooth' });
+    };
+
+    /* ─────────────────── RENDER ─────────────────────────── */
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="flex items-center justify-between mb-8">
-                <h1 className="text-3xl font-bold uppercase tracking-tighter">My Wishlist</h1>
-                {wishlistItems.length > 0 && (
-                    <button
-                        onClick={handleMoveAllToBag}
-                        className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-lg text-[10px] font-black tracking-widest uppercase hover:bg-gray-800 transition shadow-lg"
-                    >
-                        <Icons.Cart />
-                        Move All to Bag
-                    </button>
-                )}
-            </div>
+        <div className="wl-page">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 pb-0">
 
-            {wishlistItems.length === 0 ? (
-                <div className="text-center py-24 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                    <div className="text-6xl mb-4">🤍</div>
-                    <p className="text-xl text-gray-500 mb-6 font-medium">Your wishlist is empty</p>
-                    <Link to="/" className="inline-block bg-black text-white px-8 py-3 rounded-lg hover:bg-gray-800 transition font-bold uppercase tracking-widest text-xs">
-                        Start Shopping
-                    </Link>
+                {/* ── Breadcrumbs ── */}
+                <nav className="wl-breadcrumb" aria-label="breadcrumb">
+                    <Link to="/">Home</Link>
+                    <span>/</span>
+                    <span className="active">Wishlist</span>
+                </nav>
+
+                {/* ── Header ── */}
+                <div className="wl-header">
+                    <div className="wl-header-left">
+                        <h1>My Wishlist</h1>
+                        <p>
+                            {wishlistItems.length > 0
+                                ? `Curated collection of ${wishlistItems.length} exceptional ${wishlistItems.length === 1 ? 'piece' : 'pieces'}`
+                                : 'Your curated collection awaits'}
+                        </p>
+                    </div>
+                    {wishlistItems.length > 0 && (
+                        <button className="wl-move-all-btn" onClick={handleMoveAllToBag}>
+                            <img
+                                src={cartGIcon}
+                                alt=""
+                                style={{ width: 16, height: 16, filter: MINT_FILTER }}
+                            />
+                            Move All to Bag
+                        </button>
+                    )}
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {wishlistItems.map((item) => (
-                        <div key={item.id} className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
-                            <div className="relative aspect-square bg-white flex items-center justify-center p-6 border-b border-gray-50">
-                                <ProductImage
-                                    src={item.image}
-                                    alt={item.title}
-                                    className="w-full h-full group-hover:scale-105 transition-transform duration-500"
-                                />
-                                <button
-                                    onClick={() => handleRemove(item)}
-                                    className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full text-gray-400 hover:text-red-500 hover:scale-110 shadow-sm transition-all"
-                                    aria-label="Remove from wishlist"
-                                >
-                                    <Icons.Trash />
-                                </button>
-                            </div>
 
-                            <div className="p-4 flex-1 flex flex-col">
-                                <Link to={`/product/${item.product_id}`} className="block flex-1">
-                                    <h3 className="text-sm font-bold text-gray-800 line-clamp-2 mb-2 hover:text-gray-600 transition h-10">
-                                        {item.title}
-                                    </h3>
-                                </Link>
+                {/* ── Empty State ── */}
+                {wishlistItems.length === 0 ? (
+                    <div className="wl-empty">
+                        <img
+                            src={heartOutlinedIcon}
+                            alt="empty wishlist"
+                            style={{ width: 48, height: 48, opacity: 0.25 }}
+                        />
+                        <h2>Nothing saved yet</h2>
+                        <p>Add pieces you love to your curated collection.</p>
+                        <Link to="/homepage">Explore Collection</Link>
+                    </div>
+                ) : (
+                    /* ── Product Grid ── */
+                    <div className="wl-grid">
+                        {enrichedWishlist.map((item) => (
+                            <div key={item.id || item.product_id} className="wl-card group">
 
-                                <div className="mt-auto pt-4 flex flex-col gap-3">
+                                {/* Image + remove overlay */}
+                                <div className="wl-card-img-wrap">
+                                    <Link to={`/product/${item.product_id}`} className="block w-full h-full">
+                                        <ProductImage
+                                            src={item.image}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </Link>
+
+                                    {/* Close icon — always visible with stylish outline */}
                                     <button
+                                        className="wl-remove-btn"
+                                        onClick={() => handleRemove(item)}
+                                        aria-label="Remove from wishlist"
+                                    >
+                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M1 1L13 13M1 13L13 1" stroke="#111" strokeWidth="2" strokeLinecap="round" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {/* Card body */}
+                                <div className="wl-card-body">
+                                    {/* Category meta */}
+                                    <p className="wl-card-category">
+                                        {item.category || 'Collection'}
+                                    </p>
+
+                                    {/* Title → navigates to PDP */}
+                                    <Link
+                                        to={`/product/${item.product_id}`}
+                                        className="wl-card-title"
+                                    >
+                                        {item.title}
+                                    </Link>
+
+                                    {/* Price */}
+                                    <span className="wl-card-price">
+                                        ${parseFloat(item.price || 0).toLocaleString(undefined, {
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                        })}
+                                    </span>
+
+                                    {/* Add to Bag */}
+                                    <button
+                                        className="wl-add-to-bag-btn"
                                         onClick={() => handleAddToCart(item)}
-                                        className="w-full bg-black text-white py-3 rounded-lg text-[10px] font-black tracking-widest uppercase hover:bg-gray-800 transition"
                                     >
                                         Add to Bag
                                     </button>
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* ── You Might Also Like ── */}
+                {relatedProducts.length > 0 && (
+                    <section className="wl-related-section">
+                        <div className="wl-related-header">
+                            <div className="wl-related-header-left">
+                                <span>Curated for you</span>
+                                <h2>You Might <span>Also Like</span></h2>
+                            </div>
+                            <div className="wl-related-arrows hidden sm:flex">
+                                <button onClick={() => scrollSlider(-1)} aria-label="Scroll left">←</button>
+                                <button onClick={() => scrollSlider(1)} aria-label="Scroll right">→</button>
+                            </div>
                         </div>
-                    ))}
-                </div>
-            )}
+
+                        {/* Horizontal Slider */}
+                        <div className="wl-related-slider" ref={sliderRef}>
+                            {relatedProducts.map((p) => (
+                                <div key={p.id} className="wl-related-card">
+                                    <Link to={`/product/${p.id}`} className="block wl-related-card-img">
+                                        <ProductImage
+                                            src={p.image}
+                                            alt={p.title}
+                                            className="w-full h-full object-cover"
+                                            loading="lazy"
+                                        />
+                                    </Link>
+                                    <div className="wl-related-card-body">
+                                        <p>{p.category || 'Collection'}</p>
+                                        <Link to={`/product/${p.id}`}>{p.title}</Link>
+                                        <span>
+                                            ${p.price?.toLocaleString(undefined, {
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0,
+                                            })}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+            </div>
+
+            {/* ── Footer ── */}
+            <div className="mt-20">
+                <LandingFooter />
+            </div>
         </div>
     );
 }
