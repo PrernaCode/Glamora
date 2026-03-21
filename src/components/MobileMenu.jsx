@@ -12,6 +12,7 @@ function MobileMenu({
 }) {
   const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
   const user = useSelector(state => state.auth.user);
+  const profile = useSelector(state => state.auth.profile);
 
   if (!isOpen) return null;
 
@@ -103,7 +104,7 @@ function MobileMenu({
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-12 h-12 rounded-full bg-[#00674f]/10 flex items-center justify-center text-xl">👤</div>
                   <div>
-                    <p className="font-bold text-sm">{user?.user_metadata?.name || 'User'}</p>
+                    <p className="font-bold text-sm">{(profile?.full_name?.split(' ')[0]) || (user?.user_metadata?.name?.split(' ')[0]) || 'User'}</p>
                     <p className="text-xs text-gray-500 overflow-hidden text-ellipsis max-w-[150px]">{user?.email}</p>
                   </div>
                 </div>

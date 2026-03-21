@@ -25,6 +25,7 @@ function Header() {
   const wishlistCount = useSelector(state => state.wishlist.items.length);
   const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
   const user = useSelector(state => state.auth.user);
+  const profile = useSelector(state => state.auth.profile);
 
   const { data: suggestions, isFetching: loadingSuggestions } = useGetSuggestionsQuery(
     debouncedSearch,
@@ -207,7 +208,9 @@ function Header() {
                 {isAuthenticated ? (
                   <Link to="/profile" className="hover:text-[#00674f] transition flex items-center gap-2">
                     <span className="text-xl">👤</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest">{user?.user_metadata?.name || user?.email?.split('@')[0]}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">
+                      {(profile?.full_name?.split(' ')[0]) || (user?.user_metadata?.name?.split(' ')[0]) || user?.email?.split('@')[0]}
+                    </span>
                   </Link>
                 ) : (
                   <Link to="/login" className="hover:text-[#00674f] transition">
