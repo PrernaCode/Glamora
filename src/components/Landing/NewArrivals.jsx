@@ -94,7 +94,7 @@ const NewArrivals = () => {
                                     </h3>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <p className="text-[#D4AF37] font-black text-xl">
+                                    <p className="text-black font-black text-xl">
                                         ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0 })}
                                     </p>
                                     <button

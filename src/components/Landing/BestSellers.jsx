@@ -72,7 +72,7 @@ const BestSellers = () => {
                             </div>
 
                             <div className="flex justify-between items-center pt-2">
-                                <p className="text-[#D4AF37] font-black text-2xl">
+                                <p className="text-black font-black text-2xl">
                                     ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0 })}
                                 </p>
                                 <button

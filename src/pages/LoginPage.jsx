@@ -7,6 +7,8 @@ import { fetchOrders } from '../redux/slices/ordersSlice';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 
+import glamBrand from '../assets/icons/glam_brand.svg';
+
 function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -69,74 +71,92 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white py-12 px-4">
-      <div className="max-w-md w-full bg-white px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tight mb-2">Welcome Back</h2>
-          <p className="text-gray-400 text-sm">Sign in to your account</p>
-        </div>
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* Mobile-Only Header */}
+      <header className="md:hidden w-full absolute top-0 left-0 p-8 z-50">
+        <Link to="/" className="flex items-center gap-3 w-fit group cursor-pointer block">
+          <img src={glamBrand} alt="Glamora" className="w-8 h-8 transition-transform group-hover:scale-105" />
+          <span className="text-sm font-black tracking-[0.3em] uppercase group-hover:text-[#3EB489] transition-colors">GLAMORA</span>
+        </Link>
+      </header>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div>
-            <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-1">
-              EMAIL ADDRESS
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-6 py-4 rounded-2xl bg-[#F8FAFC] border-none focus:ring-2 focus:ring-[#3EB489]/20 transition-all outline-none font-medium text-gray-700 text-sm placeholder:text-gray-300"
-              placeholder="name@luxury.com"
-            />
+      {/* Desktop Header */}
+      <header className="hidden md:block relative z-50 p-10">
+        <Link to="/" className="flex items-center gap-3 w-fit group cursor-pointer block">
+          <img src={glamBrand} alt="Glamora" className="w-10 h-10 transition-transform group-hover:scale-105" />
+          <span className="text-base font-black tracking-[0.3em] uppercase group-hover:text-[#3EB489] transition-colors">GLAMORA</span>
+        </Link>
+      </header>
+
+      <div className="flex-1 flex items-center justify-center -mt-20 py-12 px-4">
+        <div className="max-w-md w-full bg-white px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight mb-2">Welcome Back</h2>
+            <p className="text-gray-400 text-sm">Sign in to your account</p>
           </div>
 
-          <div className="relative">
-            <div className="flex justify-between items-center mb-3 ml-1">
-              <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase">
-                PASSWORD
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-1">
+                EMAIL ADDRESS
               </label>
-            </div>
-            <div className="relative group">
               <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
                 required
                 className="w-full px-6 py-4 rounded-2xl bg-[#F8FAFC] border-none focus:ring-2 focus:ring-[#3EB489]/20 transition-all outline-none font-medium text-gray-700 text-sm placeholder:text-gray-300"
-                placeholder="••••••••"
+                placeholder="name@luxury.com"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="2" x2="22" y1="2" y2="22" /></svg>
-                )}
-              </button>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#00674f] text-white py-4 rounded-2xl hover:opacity-90 transition font-bold text-sm tracking-widest uppercase shadow-lg shadow-[#00674f]/20 disabled:bg-gray-400 mt-4"
-          >
-            {loading ? 'Processing...' : 'Sign In'}
-          </button>
-        </form>
+            <div className="relative">
+              <div className="flex justify-between items-center mb-3 ml-1">
+                <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase">
+                  PASSWORD
+                </label>
+              </div>
+              <div className="relative group">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-6 py-4 rounded-2xl bg-[#F8FAFC] border-none focus:ring-2 focus:ring-[#3EB489]/20 transition-all outline-none font-medium text-gray-700 text-sm placeholder:text-gray-300"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="2" x2="22" y1="2" y2="22" /></svg>
+                  )}
+                </button>
+              </div>
+            </div>
 
-        <p className="text-center mt-6 text-gray-600">
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-black font-semibold hover:underline">
-            Sign up
-          </Link>
-        </p>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#00674f] text-white py-4 rounded-2xl hover:opacity-90 transition font-bold text-sm tracking-widest uppercase shadow-lg shadow-[#00674f]/20 disabled:bg-gray-400 mt-4"
+            >
+              {loading ? 'Processing...' : 'Sign In'}
+            </button>
+          </form>
+
+          <p className="text-center mt-6 text-gray-600">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-black font-semibold hover:underline transition-colors uppercase text-[10px] tracking-widest">
+              Sign up
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
