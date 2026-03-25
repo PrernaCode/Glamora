@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser, updateProfile } from '../redux/slices/authSlice';
 import { clearCart, loadUserCart } from '../redux/slices/cartSlice';
+import { fetchOrders } from '../redux/slices/ordersSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
@@ -34,6 +35,30 @@ const Icons = {
   )
 };
 
+const OrderSkeleton = () => (
+  <div className="space-y-4 md:space-y-6">
+    {[1, 2, 3].map(i => (
+      <div key={i} className="border border-gray-100 p-4 md:p-6 bg-white rounded-xl md:rounded-2xl animate-pulse">
+        <div className="flex justify-between items-center mb-6">
+          <div className="space-y-2">
+            <div className="h-2 w-16 bg-gray-100 rounded"></div>
+            <div className="h-3 w-32 bg-gray-50 rounded"></div>
+          </div>
+          <div className="h-6 w-16 bg-gray-50 rounded-full"></div>
+        </div>
+        <div className="flex gap-3 mb-4">
+          <div className="w-14 h-14 bg-gray-50 rounded-lg"></div>
+          <div className="w-14 h-14 bg-gray-50 rounded-lg"></div>
+        </div>
+        <div className="flex justify-between pt-4 border-t border-gray-50">
+          <div className="h-3 w-20 bg-gray-50 rounded"></div>
+          <div className="h-4 w-12 bg-gray-100 rounded"></div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 function ProfilePage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -41,7 +66,7 @@ function ProfilePage() {
 
   const user = useSelector(state => state.auth.user);
   const profile = useSelector(state => state.auth.profile);
-  const orders = useSelector(state => state.orders.orders);
+  const { orders, hasMore, nextRangeStart, loading: loadingOrders } = useSelector(state => state.orders);
   const loading = useSelector(state => state.auth.loading);
 
   const [activeTab, setActiveTab] = useState('personal');
@@ -74,6 +99,12 @@ function ProfilePage() {
       });
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (user?.id && orders.length === 0 && !loadingOrders) {
+      dispatch(fetchOrders({ userId: user.id, limit: 5 }));
+    }
+  }, [user, orders.length, dispatch, loadingOrders]);
 
   const handleLogout = async () => {
     try {
@@ -108,6 +139,12 @@ function ProfilePage() {
       addToast('Profile updated successfully', 'success');
     } catch (error) {
       addToast(error || 'Failed to update profile', 'error');
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (user?.id && hasMore && !loadingOrders) {
+      dispatch(fetchOrders({ userId: user.id, start: nextRangeStart, limit: 5 }));
     }
   };
 
@@ -302,7 +339,10 @@ function ProfilePage() {
             {activeTab === 'orders' && (
               <div className="animate-fadeIn">
                 <h2 className="text-xl md:text-2xl font-bold mb-6 md:mb-8 pb-4 border-b">Order History</h2>
-                {orders.length === 0 ? (
+                
+                {loadingOrders && orders.length === 0 ? (
+                  <OrderSkeleton />
+                ) : orders.length === 0 ? (
                   <div className="text-center py-16 md:py-24 bg-gray-50 border-2 border-dashed border-gray-100 rounded-2xl mx-4 md:mx-0">
                     <p className="text-gray-400 mb-6">No orders found.</p>
                     <Link to="/" className="inline-block bg-black text-white px-8 md:px-12 py-3 text-xs font-bold tracking-widest hover:bg-gray-800 transition rounded-lg">
@@ -345,6 +385,18 @@ function ProfilePage() {
                         </div>
                       </div>
                     ))}
+
+                    {hasMore && (
+                      <div className="pt-8 text-center">
+                        <button
+                          onClick={handleLoadMore}
+                          disabled={loadingOrders}
+                          className="px-10 py-3 rounded-xl border-2 border-black text-black font-bold text-[10px] tracking-[0.2em] hover:bg-black hover:text-white transition-all disabled:opacity-50 uppercase"
+                        >
+                          {loadingOrders ? 'Loading...' : 'Load More Orders'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

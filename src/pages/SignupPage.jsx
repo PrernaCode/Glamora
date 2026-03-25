@@ -37,7 +37,7 @@ function SignupPage() {
         }
 
         await dispatch(fetchWishlist(user.id));
-        await dispatch(fetchOrders(user.id));
+        await dispatch(fetchOrders({ userId: user.id, limit: 5 }));
 
         addToast('Account created successfully!', 'success');
         navigate('/');

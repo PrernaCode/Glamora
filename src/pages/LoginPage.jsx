@@ -37,7 +37,7 @@ function LoginPage() {
         }
 
         await dispatch(fetchWishlist(user.id));
-        await dispatch(fetchOrders(user.id));
+        await dispatch(fetchOrders({ userId: user.id, limit: 5 }));
 
         addToast('Login successful!', 'success');
         navigate(from, { replace: true });

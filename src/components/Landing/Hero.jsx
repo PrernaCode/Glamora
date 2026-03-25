@@ -59,7 +59,10 @@ const Hero = () => {
                             </span>
                         </button>
 
-                        <button className="px-10 py-5 bg-transparent border border-white/30 backdrop-blur-sm text-white rounded-full font-black text-xs md:text-sm uppercase tracking-widest transition-all hover:bg-white/10 hover:border-white active:scale-95">
+                        <button
+                            onClick={() => navigate('/about')}
+                            className="px-10 py-5 bg-transparent border border-white/30 backdrop-blur-sm text-white rounded-full font-black text-xs md:text-sm uppercase tracking-widest transition-all hover:bg-white/10 hover:border-white active:scale-95"
+                        >
                             The Heritage
                         </button>
                     </div>

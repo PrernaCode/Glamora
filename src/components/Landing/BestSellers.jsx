@@ -1,13 +1,40 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { useGetProductsQuery } from '../../redux/slices/productsApi';
+import { addToCart, syncCartItem } from '../../redux/slices/cartSlice';
+import { useToast } from '../../components/Toast';
 import cartGIcon from '../../assets/icons/cartG.svg';
 
 const BestSellers = () => {
+    const dispatch = useDispatch();
+    const { addToast } = useToast();
     const { data: products, isLoading } = useGetProductsQuery();
+    const user = useSelector(state => state.auth.user);
 
     // Filter for products with rating >= 4.5
     const featuredProducts = products?.filter(p => (p.rating?.rate ?? 0) >= 4.5).slice(0, 4) || [];
+
+    const handleAddToCart = async (e, product) => {
+        e.preventDefault(); // Stop default action (in case of button/form)
+        e.stopPropagation(); // Stop parent Link from navigating
+
+        // Normalize product data for cart
+        const cartItem = {
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            image: product.images?.[0]
+        };
+
+        dispatch(addToCart(cartItem));
+
+        if (user?.id) {
+            await dispatch(syncCartItem({ userId: user.id, item: cartItem }));
+        }
+
+        addToast(`${product.title} added to bag`, 'success');
+    };
 
     if (isLoading) return (
         <div className="py-20 flex justify-center items-center">
@@ -76,7 +103,7 @@ const BestSellers = () => {
                                     ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0 })}
                                 </p>
                                 <button
-                                    onClick={(e) => e.preventDefault()}
+                                    onClick={(e) => handleAddToCart(e, product)}
                                     className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center hover:bg-[#00674f] hover:border-[#00674f] transition-all duration-300 group/cart shadow-sm"
                                 >
                                     <img src={cartGIcon} alt="Add to cart" className="w-6 h-6 group-hover/cart:brightness-0 group-hover/cart:invert" />

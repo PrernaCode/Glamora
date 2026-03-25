@@ -1,19 +1,26 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { supabase } from '../../supabaseClient';
 
-// Async thunk to fetch orders from Supabase
+// Async thunk to fetch orders from Supabase with pagination
 export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',
-  async (userId, { rejectWithValue }) => {
+  async ({ userId, start = 0, limit = 5 }, { rejectWithValue }) => {
     try {
-      const { data, error } = await supabase
+      const end = start + limit - 1;
+      const { data, error, count } = await supabase
         .from('orders')
-        .select('*, order_items(*)')
+        .select('*, order_items(*)', { count: 'exact' })
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(start, end);
 
       if (error) throw error;
-      return data;
+      
+      return { 
+        orders: data, 
+        hasMore: count > end + 1,
+        isInitial: start === 0
+      };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -65,20 +72,13 @@ export const placeOrder = createAsyncThunk(
   }
 );
 
-// Load orders from localStorage (Legacy / Offline)
-const loadOrdersFromStorage = () => {
-  try {
-    const savedOrders = localStorage.getItem('orders');
-    return savedOrders ? JSON.parse(savedOrders) : [];
-  } catch (error) {
-    return [];
-  }
-};
-
+// Removed legacy localStorage loading for better reliability
 const initialState = {
-  orders: loadOrdersFromStorage(),
+  orders: [],
   loading: false,
   error: null,
+  hasMore: false,
+  nextRangeStart: 0
 };
 
 const ordersSlice = createSlice({
@@ -87,7 +87,6 @@ const ordersSlice = createSlice({
   reducers: {
     clearOrders: (state) => {
       state.orders = [];
-      localStorage.removeItem('orders');
     },
   },
   extraReducers: (builder) => {
@@ -98,7 +97,14 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload;
+        if (action.payload.isInitial) {
+          state.orders = action.payload.orders;
+          state.nextRangeStart = action.payload.orders.length;
+        } else {
+          state.orders = [...state.orders, ...action.payload.orders];
+          state.nextRangeStart += action.payload.orders.length;
+        }
+        state.hasMore = action.payload.hasMore;
         state.error = null;
       })
       .addCase(fetchOrders.rejected, (state, action) => {
