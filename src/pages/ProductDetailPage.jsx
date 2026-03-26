@@ -8,7 +8,6 @@ import { useToast } from '../components/Toast';
 import LoginModal from '../components/LoginModal';
 import ProductImage from '../components/ProductImage';
 import LandingFooter from '../components/Landing/LandingFooter';
-import './ProductDetailPage.css';
 
 // Icons from assets/icons folder
 import cartGIcon from '../assets/icons/cartG.svg';
@@ -84,7 +83,7 @@ function RelatedProductCard({ product, onAddToCart, onLoginRequired }) {
   };
 
   return (
-    <div className="pdp-related-card group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100/60 relative shrink-0">
+    <div className="pdp-related-card group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100/60 relative shrink-0 w-[280px] min-w-[280px] snap-start">
       {/* Wishlist */}
       <button
         onClick={handleToggleWishlist}
@@ -218,7 +217,7 @@ function ProductDetailPage() {
   ];
 
   return (
-    <main className="pdp-container bg-white">
+    <main className="bg-white opacity-0 animate-[fadeIn_0.7s_ease-out_forwards]">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 pt-24 pb-20">
 
         {/* ── Breadcrumb ── */}
@@ -237,7 +236,7 @@ function ProductDetailPage() {
 
           {/* Left: Image ── */}
           <div className="lg:col-span-7">
-            <div className="pdp-image-main">
+            <div className="relative rounded-[2rem] bg-[#f9f9f9] overflow-hidden aspect-[4/5] flex items-center justify-center p-10 transition-all duration-400 hover:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.1)] max-[768px]:p-6 max-[768px]:rounded-[1.5rem]">
               <ProductImage
                 src={product.image}
                 alt={product.title}
@@ -247,16 +246,16 @@ function ProductDetailPage() {
           </div>
 
           {/* Right: Details ── */}
-          <div className="lg:col-span-5 pdp-details-container">
+          <div className="lg:col-span-5 opacity-0 translate-y-4 animate-[slideUp_0.7s_cubic-bezier(0.2,1,0.3,1)_forwards_0.15s]">
             <div className="lg:sticky lg:top-28 space-y-6">
 
               {/* Category Tag */}
               <div>
-                <span className="pdp-category-tag">{product.category}</span>
+                <span className="inline-block px-4 py-1.5 text-[0.6rem] font-bold uppercase tracking-[0.35em] text-[#3EB489] bg-[#3EB489]/[0.08] border border-[#3EB489]/20 rounded-full">{product.category}</span>
               </div>
 
               {/* Title */}
-              <h1 className="pdp-product-title">{product.title}</h1>
+              <h1 className="pdp-product-title text-[clamp(1.6rem,3.5vw,2.4rem)] font-extrabold leading-[1.15] tracking-tight uppercase text-[#575656] max-[768px]:text-[1.6rem]">{product.title}</h1>
 
               {/* Price + Rating row */}
               <div className="flex flex-col items-start gap-5 flex-wrap">
@@ -268,11 +267,11 @@ function ProductDetailPage() {
                     </span>
                   </div>
                 )}
-                <span className="pdp-price">${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+                <span className="text-[1.6rem] font-black tracking-tight text-black max-[768px]:text-[1.4rem]">${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
               </div>
 
               {/* Divider */}
-              <div className="pdp-divider" />
+              <div className="h-[1px] w-full bg-[#f0f0f0] my-5" />
 
               {/* Description */}
               <div className="space-y-2">
@@ -283,14 +282,14 @@ function ProductDetailPage() {
               </div>
 
               {/* Divider */}
-              <div className="pdp-divider" />
+              <div className="h-[1px] w-full bg-[#f0f0f0] my-5" />
 
               {/* CTA Buttons */}
               <div className="space-y-4">
                 {/* Add to Bag */}
                 <button
                   onClick={handleAddToCart}
-                  className="pdp-btn-cart w-full flex items-center justify-center gap-3"
+                  className="px-8 py-[1.1rem] bg-[#3EB489] text-white text-[0.75rem] font-extrabold uppercase tracking-[0.15em] rounded-full border-none transition-all duration-400 cubic-bezier(0.4,0,0.2,1) shadow-[0_10px_25px_-5px_rgba(62,180,137,0.3)] hover:bg-[#349e78] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_-8px_rgba(62,180,137,0.45)] active:translate-y-0 w-full flex items-center justify-center gap-3"
                 >
                   <img src={cartGIcon} alt="" className="w-4 h-4 brightness-0 invert" />
                   Add to Bag
@@ -299,7 +298,7 @@ function ProductDetailPage() {
                 {/* Wishlist */}
                 <button
                   onClick={handleToggleWishlist}
-                  className="pdp-btn-wishlist w-full flex items-center justify-center gap-3"
+                  className="px-8 py-4 rounded-full border-[1.5px] border-[#3EB489] flex items-center justify-center transition-all duration-300 bg-transparent text-[#3EB489] text-[0.75rem] font-bold uppercase tracking-[0.15em] hover:bg-[#3EB489]/[0.05] hover:-translate-y-px w-full flex items-center justify-center gap-3"
                   aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                 >
                   <img
@@ -314,20 +313,20 @@ function ProductDetailPage() {
                 {/* Secondary CTA */}
                 <button
                   onClick={() => navigate('/cart')}
-                  className="pdp-btn-secondary w-full"
+                  className="py-[0.85rem] text-[0.65rem] font-extrabold uppercase tracking-[0.25em] text-[#707070] transition-all duration-300 border-none bg-transparent hover:text-black hover:tracking-[0.3em] w-full"
                 >
                   Proceed to Checkout
                 </button>
               </div>
 
               {/* Divider */}
-              <div className="pdp-divider" />
+              <div className="h-[1px] w-full bg-[#f0f0f0] my-5" />
 
               {/* Feature strips */}
               <div className="space-y-5">
                 {features.map((feature, i) => (
                   <div key={i} className="flex items-start gap-4 group">
-                    <div className="pdp-feature-icon-wrap group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 min-w-[2.5rem] p-2.5 rounded-[0.875rem] bg-[#3EB489]/[0.08] flex items-center justify-center group-hover:scale-110 transition-transform">
                       <img
                         src={feature.icon}
                         alt=""
@@ -380,7 +379,7 @@ function ProductDetailPage() {
             {/* Horizontal Slider */}
             <div
               ref={sliderRef}
-              className="pdp-related-slider"
+              className="flex gap-6 overflow-x-auto px-1 py-2 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-200"
             >
               {relatedProducts.map((p) => (
                 <RelatedProductCard
@@ -431,7 +430,7 @@ function ProductDetailPage() {
           {/* Review Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {MOCK_REVIEWS.map((review) => (
-              <div key={review.id} className="pdp-review-card">
+              <div key={review.id} className="bg-white border border-[#f0f0f0] rounded-[1.5rem] p-6 transition-shadow duration-300 hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.08)]">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <p className="text-sm font-black text-black">{review.name}</p>
