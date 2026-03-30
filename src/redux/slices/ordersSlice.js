@@ -27,45 +27,36 @@ export const fetchOrders = createAsyncThunk(
   }
 );
 
-// Async thunk to create order in Supabase
+// Async thunk to create order in Supabase via secure RPC
 export const placeOrder = createAsyncThunk(
   'orders/placeOrder',
-  async ({ userId, items, shippingAddress, totalAmount }, { rejectWithValue }) => {
+  async ({ userId, items, shippingAddress, shippingMethod }, { rejectWithValue }) => {
     try {
-      // 1. Create the main order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: userId,
-          total_amount: totalAmount,
-          shipping_address: shippingAddress,
-          status: 'completed'
-        })
-        .select()
-        .single();
+      // Use the RPC to handle order creation securely on the backend.
+      // We only send the shipping address and the list of {product_id, quantity}.
+      // Prices, totals, and shipping costs are looked up and calculated in the DB.
+      const { data, error } = await supabase.rpc('create_secure_order', {
+        p_shipping_address: shippingAddress,
+        p_items: items.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity
+        })),
+        p_shipping_method: shippingMethod
+      });
 
-      if (orderError) throw orderError;
+      if (error) throw error;
 
-      // 2. Create the order items with snapshots
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        unit_price: item.price,
-        title: item.title,
-        image: item.image
-      }));
-
-      const { error: itemsError } = await supabase
+      // The RPC returns the order row. Since the UI expects order_items to be present
+      // and the backend just created them, we'll fetch them or return the data.
+      // In this case, let's fetch the items for the newly created order for a complete response.
+      const { data: orderItems, error: itemsError } = await supabase
         .from('order_items')
-        .insert(orderItems);
+        .select('*')
+        .eq('order_id', data.id);
 
       if (itemsError) throw itemsError;
 
-      // 3. Clear the user's cart in DB
-      await supabase.from('cart_items').delete().eq('user_id', userId);
-
-      return { ...order, order_items: orderItems };
+      return { ...data, order_items: orderItems };
     } catch (error) {
       return rejectWithValue(error.message);
     }

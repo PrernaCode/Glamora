@@ -76,7 +76,7 @@ function CheckoutPage() {
         userId: user.id,
         items: cartItems,
         shippingAddress: data,
-        totalAmount: totalAmount + (shippingMethod === 'express' ? 25 : 0),
+        shippingMethod: shippingMethod,
       })).unwrap();
 
       if (data.saveToProfile) {

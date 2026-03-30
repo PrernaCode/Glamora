@@ -26,17 +26,27 @@ export const fetchProfile = createAsyncThunk(
   }
 );
 
-// Async thunk to update user profile
+// Async thunk to update user profile with basic field sanitization
 export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
   async (profileData, { rejectWithValue }) => {
     try {
+      // White-list safe fields to prevent mass assignment of sensitive columns (e.g., role)
+      const safeFields = {
+        id: profileData.id,
+        full_name: profileData.full_name,
+        email: profileData.email,
+        phone_number: profileData.phone_number,
+        address: profileData.address,
+        city: profileData.city,
+        state: profileData.state,
+        pincode: profileData.pincode,
+        updated_at: new Date().toISOString(),
+      };
+
       const { data, error } = await supabase
         .from('profiles')
-        .upsert({
-          ...profileData,
-          updated_at: new Date().toISOString(),
-        })
+        .upsert(safeFields)
         .select()
         .single();
 
