@@ -43,7 +43,7 @@ function WishlistPage() {
 
     /* ── Handlers ── */
     const handleRemove = (item) => {
-        dispatch(toggleWishlistItem({ userId: user.id, product: { id: item.product_id, title: item.title } }));
+        dispatch(toggleWishlistItem({ product: { id: item.product_id, title: item.title } }));
         addToast('Removed from wishlist', 'success');
     };
 

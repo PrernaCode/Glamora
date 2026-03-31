@@ -102,7 +102,7 @@ function ProfilePage() {
 
   useEffect(() => {
     if (user?.id && orders.length === 0 && !loadingOrders) {
-      dispatch(fetchOrders({ userId: user.id, limit: 5 }));
+      dispatch(fetchOrders({ limit: 5 }));
     }
   }, [user, orders.length, dispatch, loadingOrders]);
 
@@ -131,7 +131,6 @@ function ProfilePage() {
     try {
       const { firstName, lastName, ...rest } = formData;
       await dispatch(updateProfile({
-        id: user.id,
         ...rest,
         full_name: `${firstName} ${lastName}`.trim()
       })).unwrap();
@@ -144,7 +143,7 @@ function ProfilePage() {
 
   const handleLoadMore = () => {
     if (user?.id && hasMore && !loadingOrders) {
-      dispatch(fetchOrders({ userId: user.id, start: nextRangeStart, limit: 5 }));
+      dispatch(fetchOrders({ start: nextRangeStart, limit: 5 }));
     }
   };
 

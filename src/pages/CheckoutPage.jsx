@@ -73,7 +73,6 @@ function CheckoutPage() {
 
     try {
       await dispatch(placeOrder({
-        userId: user.id,
         items: cartItems,
         shippingAddress: data,
         shippingMethod: shippingMethod,
@@ -81,7 +80,6 @@ function CheckoutPage() {
 
       if (data.saveToProfile) {
         await dispatch(updateProfile({
-          id: user.id,
           full_name: data.fullName,
           email: data.email,
           phone_number: data.phone,

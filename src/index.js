@@ -23,15 +23,15 @@ const initializeApp = async () => {
     // 2. If user is logged in, sync DB data
     if (guestCart.items.length > 0) {
       // Merge guest cart if it has items
-      await store.dispatch(mergeGuestCart({ userId, guestItems: guestCart.items }));
+      await store.dispatch(mergeGuestCart({ guestItems: guestCart.items }));
       localStorage.removeItem('cart_guest');
     } else {
       // Just fetch existing cart
-      await store.dispatch(fetchCart(userId));
+      await store.dispatch(fetchCart());
     }
     // 3. Fetch orders history & wishlist
-    await store.dispatch(fetchOrders(userId));
-    await store.dispatch(fetchWishlist(userId));
+    await store.dispatch(fetchOrders());
+    await store.dispatch(fetchWishlist());
   }
 };
 

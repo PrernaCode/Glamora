@@ -4,8 +4,12 @@ import { supabase } from '../../supabaseClient';
 // Async thunk to fetch orders from Supabase with pagination
 export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',
-  async ({ userId, start = 0, limit = 5 }, { rejectWithValue }) => {
+  async ({ start = 0, limit = 5 } = {}, { rejectWithValue }) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session found');
+      const userId = session.user.id;
+
       const end = start + limit - 1;
       const { data, error, count } = await supabase
         .from('orders')
@@ -30,7 +34,7 @@ export const fetchOrders = createAsyncThunk(
 // Async thunk to create order in Supabase via secure RPC
 export const placeOrder = createAsyncThunk(
   'orders/placeOrder',
-  async ({ userId, items, shippingAddress, shippingMethod }, { rejectWithValue }) => {
+  async ({ items, shippingAddress, shippingMethod }, { rejectWithValue }) => {
     try {
       // Use the RPC to handle order creation securely on the backend.
       // We only send the shipping address and the list of {product_id, quantity}.

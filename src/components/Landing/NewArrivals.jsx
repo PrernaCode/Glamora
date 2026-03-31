@@ -36,7 +36,7 @@ const NewArrivals = () => {
         dispatch(addToCart(cartItem));
 
         if (user?.id) {
-            await dispatch(syncCartItem({ userId: user.id, item: cartItem }));
+            await dispatch(syncCartItem({ item: cartItem }));
         }
 
         addToast(`${product.title} added to bag`, 'success');

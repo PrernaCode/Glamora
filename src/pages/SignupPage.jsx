@@ -30,14 +30,14 @@ function SignupPage() {
         const guestCart = JSON.parse(localStorage.getItem('cart_guest') || '{"items":[]}');
 
         if (guestCart.items.length > 0) {
-          await dispatch(mergeGuestCart({ userId: user.id, guestItems: guestCart.items }));
+          await dispatch(mergeGuestCart({ guestItems: guestCart.items }));
           localStorage.removeItem('cart_guest');
         } else {
-          await dispatch(fetchCart(user.id));
+          await dispatch(fetchCart());
         }
 
-        await dispatch(fetchWishlist(user.id));
-        await dispatch(fetchOrders({ userId: user.id, limit: 5 }));
+        await dispatch(fetchWishlist());
+        await dispatch(fetchOrders({ limit: 5 }));
 
         addToast('Account created successfully!', 'success');
         navigate('/');

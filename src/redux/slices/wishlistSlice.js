@@ -3,8 +3,12 @@ import { supabase } from '../../supabaseClient';
 
 export const fetchWishlist = createAsyncThunk(
     'wishlist/fetch',
-    async (userId, { rejectWithValue }) => {
+    async (_, { rejectWithValue }) => {
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('No active session found');
+            const userId = session.user.id;
+
             const { data, error } = await supabase
                 .from('wishlist')
                 .select('*')
@@ -19,8 +23,11 @@ export const fetchWishlist = createAsyncThunk(
 
 export const toggleWishlistItem = createAsyncThunk(
     'wishlist/toggle',
-    async ({ userId, product }, { getState, rejectWithValue }) => {
+    async ({ product }, { getState, rejectWithValue }) => {
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('No active session found');
+            const userId = session.user.id;
             const { wishlist } = getState();
             const existing = wishlist.items.find(item => item.product_id === product.id);
 

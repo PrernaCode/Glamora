@@ -28,8 +28,12 @@ const loadCartFromStorage = (userId = null) => {
 // Async thunk to fetch cart from Supabase
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
-  async (userId, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session found');
+      const userId = session.user.id;
+
       // Step 1: fetch cart items (safe, no join)
       const { data, error } = await supabase
         .from('cart_items')
@@ -72,8 +76,12 @@ export const fetchCart = createAsyncThunk(
 // Async thunk to add/update item in Supabase
 export const syncCartItem = createAsyncThunk(
   'cart/syncItem',
-  async ({ userId, item }, { rejectWithValue }) => {
+  async ({ item }, { rejectWithValue }) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session found');
+      const userId = session.user.id;
+
       const { data, error } = await supabase
         .from('cart_items')
         .upsert({
@@ -99,8 +107,12 @@ export const syncCartItem = createAsyncThunk(
 // Async thunk to remove item from Supabase
 export const removeItemFromDB = createAsyncThunk(
   'cart/removeItem',
-  async ({ userId, productId }, { rejectWithValue }) => {
+  async ({ productId }, { rejectWithValue }) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session found');
+      const userId = session.user.id;
+
       const { error } = await supabase
         .from('cart_items')
         .delete()
@@ -118,12 +130,12 @@ export const removeItemFromDB = createAsyncThunk(
 // Async thunk to merge guest cart to user cart
 export const mergeGuestCart = createAsyncThunk(
   'cart/mergeGuest',
-  async ({ userId, guestItems }, { dispatch, rejectWithValue }) => {
+  async ({ guestItems }, { dispatch, rejectWithValue }) => {
     try {
       for (const item of guestItems) {
-        await dispatch(syncCartItem({ userId, item }));
+        await dispatch(syncCartItem({ item }));
       }
-      return await dispatch(fetchCart(userId)).unwrap();
+      return await dispatch(fetchCart()).unwrap();
     } catch (error) {
       return rejectWithValue(error.message);
     }

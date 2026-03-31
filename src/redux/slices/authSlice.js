@@ -10,8 +10,12 @@ const checkSession = async () => {
 // Async thunk to fetch user profile
 export const fetchProfile = createAsyncThunk(
   'auth/fetchProfile',
-  async (userId, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session found');
+      const userId = session.user.id;
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -31,9 +35,13 @@ export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
   async (profileData, { rejectWithValue }) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session found');
+      const userId = session.user.id;
+
       // White-list safe fields to prevent mass assignment of sensitive columns (e.g., role)
       const safeFields = {
-        id: profileData.id,
+        id: userId, // Securely derived from session
         full_name: profileData.full_name,
         email: profileData.email,
         phone_number: profileData.phone_number,
@@ -71,7 +79,7 @@ export const loginUser = createAsyncThunk(
       if (error) throw error;
 
       // Fetch profile after successful login
-      await dispatch(fetchProfile(data.user.id));
+      await dispatch(fetchProfile());
 
       return {
         user: data.user,
@@ -102,7 +110,7 @@ export const signupUser = createAsyncThunk(
 
       // Profile is created by DB trigger, but we fetch it to be sure
       if (data.user) {
-        await dispatch(fetchProfile(data.user.id));
+        await dispatch(fetchProfile());
       }
 
       return {
@@ -222,6 +230,6 @@ export const initializeAuth = () => async (dispatch) => {
       user: session.user,
       token: session.access_token,
     }));
-    await dispatch(fetchProfile(session.user.id));
+    await dispatch(fetchProfile());
   }
 };

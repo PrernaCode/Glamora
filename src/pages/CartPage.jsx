@@ -29,7 +29,7 @@ function RelatedProductCard({ product, onAddToCart, onLoginRequired }) {
     e.preventDefault();
     e.stopPropagation();
     if (!user) { onLoginRequired(); return; }
-    dispatch(toggleWishlistItem({ userId: user.id, product }));
+    dispatch(toggleWishlistItem({ product }));
   };
 
   return (

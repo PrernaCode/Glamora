@@ -27,13 +27,13 @@ export const cartPersistenceMiddleware = (store) => (next) => (action) => {
         // We need the full item state from the store after the reducer ran
         const updatedItem = cartItems.find(i => i.id === (itemToSync.id || itemToSync));
         if (updatedItem) {
-          store.dispatch(syncCartItem({ userId, item: updatedItem }));
+          store.dispatch(syncCartItem({ item: updatedItem }));
         }
       }
     }
 
     if (action.type === 'cart/removeFromCart') {
-      store.dispatch(removeItemFromDB({ userId, productId: action.payload }));
+      store.dispatch(removeItemFromDB({ productId: action.payload }));
     }
 
     if (action.type === 'cart/clearCart') {
