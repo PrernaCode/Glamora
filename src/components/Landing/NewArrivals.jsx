@@ -2,13 +2,11 @@ import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetProductsByCategoryQuery } from '../../redux/slices/productsApi';
-import { addToCart, syncCartItem } from '../../redux/slices/cartSlice';
-import { useToast } from '../../components/Toast';
+import { useCartActions } from '../../hooks/useCartActions';
 import cartGIcon from '../../assets/icons/cartG.svg';
 
 const NewArrivals = () => {
-    const dispatch = useDispatch();
-    const { addToast } = useToast();
+    const { handleAddToCart } = useCartActions();
     const user = useSelector(state => state.auth.user);
     // Category ID 8 is New Arrivals
     const { data: products, isLoading, error } = useGetProductsByCategoryQuery({ categoryId: 8 });
@@ -20,26 +18,6 @@ const NewArrivals = () => {
             const scrollAmount = direction === 'left' ? -350 : 350;
             current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
-    };
-
-    const handleAddToCart = async (e, product) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const cartItem = {
-            id: product.id,
-            title: product.title,
-            price: product.price,
-            image: product.images?.[0]
-        };
-
-        dispatch(addToCart(cartItem));
-
-        if (user?.id) {
-            await dispatch(syncCartItem({ item: cartItem }));
-        }
-
-        addToast(`${product.title} added to bag`, 'success');
     };
 
     if (isLoading) return (
@@ -89,6 +67,7 @@ const NewArrivals = () => {
                                 <img
                                     src={product.images?.[0] || 'https://via.placeholder.com/400x400'}
                                     alt={product.title}
+                                    loading="lazy"
                                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                                 />
                                 {product.isNew && (
@@ -124,7 +103,11 @@ const NewArrivals = () => {
                                         ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 0 })}
                                     </p>
                                     <button
-                                        onClick={(e) => handleAddToCart(e, product)}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleAddToCart(product);
+                                        }}
                                         className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-[#00674f] hover:border-[#00674f] transition-all duration-300 group/cart shadow-sm"
                                     >
                                         <img src={cartGIcon} alt="Add to cart" className="w-5 h-5 group-hover/cart:brightness-0 group-hover/cart:invert" />

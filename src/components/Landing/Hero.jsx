@@ -12,6 +12,7 @@ const Hero = () => {
                 <img
                     src={heroImage}
                     alt="Glamora Immersive Luxury"
+                    fetchPriority="high"
                     className="w-full h-full object-cover object-center scale-105 animate-slowZoom"
                 />
                 {/* Advanced Gradient Overlay for Premium Feel */}

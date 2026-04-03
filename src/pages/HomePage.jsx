@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useCallback, memo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addToCart } from '../redux/slices/cartSlice';
 import { toggleWishlistItem } from '../redux/slices/wishlistSlice';
 import { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery, useSearchProductsQuery } from '../redux/slices/productsApi';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useToast } from '../components/Toast';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import useDebounce from '../hooks/useDebounce';
+import { useCartActions } from '../hooks/useCartActions';
 import LoginModal from '../components/LoginModal';
 import ProductImage from '../components/ProductImage';
 import cartGIcon from '../assets/icons/cartG.svg';
@@ -119,10 +118,8 @@ const RatingFilter = ({ selectedRating, onSelect }) => {
 
 /* ─── HomePage ───────────────────────────────────────────────────────── */
 function HomePage() {
-  const dispatch = useDispatch();
-  const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null); // null = will be set to "Clothes" after categories load
+  const [selectedCategory, setSelectedCategory] = useState(null); 
   const [selectedRating, setSelectedRating] = useState(null);
   const [priceMax, setPriceMax] = useState(600);
   const [page, setPage] = useState(0);
@@ -130,21 +127,20 @@ function HomePage() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
 
+  const { handleAddToCart } = useCartActions();
+
   // Read ?search=, ?collection=, and ?category= from URL
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
   const collectionParam = searchParams.get('collection') || '';
-  const categoryParam = searchParams.get('category') || ''; // e.g. "shoes", "clothes"
+  const categoryParam = searchParams.get('category') || '';
 
   const handleLoginRequired = () => setIsLoginModalOpen(true);
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
   const { data: categories } = useGetCategoriesQuery();
 
-  // URL search (from header) takes priority over local state search.
-  // We trim and truncate to 50 chars for security consistency.
   const effectiveSearch = (urlSearch.trim().substring(0, 50)) || debouncedSearchTerm;
 
-  // Sync category / collection from URL params (reacts to header navigation)
   useEffect(() => {
     if (categoryParam && categories) {
       const match = categories.find(
@@ -156,15 +152,11 @@ function HomePage() {
     } else {
       setSelectedCategory('all');
     }
-
-    // Reset rating if we change collections/categories unless it's best-sellers
-    // (Or we could leave it, but for clean nav from header, resetting simplifies it)
     if (collectionParam !== 'best-sellers') {
       setSelectedRating(null);
     }
   }, [collectionParam, categoryParam, categories]);
 
-  // Reset page on filter / search change
   useEffect(() => {
     setPage(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -173,13 +165,11 @@ function HomePage() {
   const currentCategoryId = selectedCategory ?? 'all';
   const isSearchActive = effectiveSearch.trim().length > 0;
 
-  // Server-side search (runs when header OR local search is active)
   const { data: searchResults, isFetching: fetchingSearch } = useSearchProductsQuery(
     { searchTerm: effectiveSearch, categoryId: currentCategoryId, page },
     { skip: !isSearchActive }
   );
 
-  // ── Pagination queries (active when NO search term) ──
   const { data: allProducts, isLoading: loadingAll, isFetching: fetchingAll } = useGetProductsQuery(page, {
     skip: isSearchActive || currentCategoryId !== 'all'
   });
@@ -189,7 +179,6 @@ function HomePage() {
     { skip: isSearchActive || (currentCategoryId === 'all' && collectionParam !== 'new-arrivals') }
   );
 
-  // Route to the right data source
   const products = isSearchActive
     ? searchResults
     : (currentCategoryId === 'all' && collectionParam !== 'new-arrivals') ? allProducts : categoryProducts;
@@ -203,23 +192,16 @@ function HomePage() {
 
   const filteredProducts = useMemo(() => {
     let result = products;
-
-    // Apply text search filter if not using server-side results
     if (!isSearchActive && effectiveSearch) {
       result = result?.filter(p => p.title.toLowerCase().includes(effectiveSearch.toLowerCase()));
     }
-
-    // Apply Best Sellers collection logic (rating >= 4.5)
     if (collectionParam === 'best-sellers') {
       result = result?.filter(p => (p.rating?.rate ?? 0) >= 4.5);
     }
-
     if (selectedRating) {
       result = result?.filter(p => (p.rating?.rate ?? 0) >= selectedRating);
     }
     result = result?.filter(p => (p.price ?? 0) <= priceMax);
-
-    // Apply sort
     if (result) {
       result = [...result].sort((a, b) => {
         if (sortBy === 'price_asc') return (a.price ?? 0) - (b.price ?? 0);
@@ -230,17 +212,9 @@ function HomePage() {
     return result;
   }, [products, effectiveSearch, selectedRating, priceMax, isSearchActive, sortBy, collectionParam]);
 
-  const handleAddToCart = useCallback((product) => {
-    dispatch(addToCart(product));
-    addToast(`${product.title.substring(0, 30)}... added to cart`, 'success');
-  }, [dispatch, addToast]);
-
-  // Clears search (local + URL) and collection whenever a category is selected
   const handleCategoryChange = useCallback((id) => {
     setSelectedCategory(id);
     setSearchTerm('');
-
-    // Create a new URLSearchParams object to safely update the URL
     const newParams = new URLSearchParams(searchParams);
     newParams.delete('search');
     newParams.delete('collection');
@@ -264,15 +238,12 @@ function HomePage() {
 
   return (
     <main className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 py-6 mt-0 overflow-x-hidden">
-
-      {/* ── Breadcrumbs ── */}
       <nav className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-20 mb-6">
         <Link to="/" className="hover:text-black transition-colors">Home</Link>
         <span>/</span>
         <span className="text-black">{currentCategoryName}</span>
       </nav>
 
-      {/* ── Hero heading (left-aligned) ── */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-4xl md:text-6xl font-black uppercase text-[#00674f] tracking-tighter leading-none">
           {collectionParam ? (
@@ -296,8 +267,6 @@ function HomePage() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-10">
-
-        {/* ── Mobile sidebar toggle ── */}
         <button
           onClick={() => setShowMobileSidebar(v => !v)}
           className="lg:hidden flex items-center justify-between w-full px-4 py-3 bg-white border border-gray-100 rounded-xl shadow-sm text-[10px] font-black uppercase tracking-widest"
@@ -311,10 +280,7 @@ function HomePage() {
           </svg>
         </button>
 
-        {/* ── Sidebar ── */}
         <aside className={`lg:w-60 shrink-0 space-y-10 ${showMobileSidebar ? 'block' : 'hidden lg:block'}`}>
-
-          {/* Category filter */}
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <span className="w-1 h-4 bg-[#00674f] rounded-full inline-block"></span>
@@ -345,7 +311,6 @@ function HomePage() {
             </div>
           </div>
 
-          {/* Price filter */}
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <span className="w-1 h-4 bg-[#00674f] rounded-full inline-block"></span>
@@ -370,7 +335,6 @@ function HomePage() {
             </div>
           </div>
 
-          {/* Rating filter */}
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <span className="w-1 h-4 bg-[#00674f] rounded-full inline-block"></span>
@@ -380,19 +344,13 @@ function HomePage() {
               <RatingFilter selectedRating={selectedRating} onSelect={setSelectedRating} />
             </div>
           </div>
-
         </aside>
 
-        {/* ── Main content ── */}
         <div className="flex-1 min-w-0 space-y-6">
-
-          {/* Top bar: count + sort */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">
               Showing <span className="text-[#00674f]">{filteredProducts?.length || 0}</span> products
             </p>
-
-            {/* Sort By dropdown */}
             <div className="relative">
               <select
                 value={sortBy}
@@ -404,40 +362,27 @@ function HomePage() {
                 <option value="price_asc" className="bg-black">Price: Low → High</option>
                 <option value="price_desc" className="bg-black">Price: High → Low</option>
               </select>
-              <DownArrowIcon
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 pointer-events-none"
-                fill="white"
-              />
+              <DownArrowIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 pointer-events-none" fill="white" />
             </div>
           </div>
 
-          {/* Active filter chips — shows URL search OR local search */}
           {(effectiveSearch || selectedRating) && (
             <div className="flex flex-wrap gap-2">
               {effectiveSearch && (
                 <span className="bg-black text-white pl-3 pr-2 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                   {effectiveSearch}
-                  <button
-                    onClick={() => {
-                      // Clear whichever is active
-                      if (urlSearch) { searchParams.delete('search'); setSearchParams(searchParams); }
-                      else setSearchTerm('');
-                    }}
-                    className="w-4 h-4 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/40"
-                    aria-label="Clear search"
-                  >✕</button>
+                  <button onClick={() => { if (urlSearch) { searchParams.delete('search'); setSearchParams(searchParams); } else setSearchTerm(''); }} className="w-4 h-4 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/40">✕</button>
                 </span>
               )}
               {selectedRating && (
                 <span className="bg-[#00674f] text-white pl-3 pr-2 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                   {selectedRating}+ stars
-                  <button onClick={() => setSelectedRating(null)} className="w-4 h-4 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/40" aria-label="Clear rating">✕</button>
+                  <button onClick={() => setSelectedRating(null)} className="w-4 h-4 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/40">✕</button>
                 </span>
               )}
             </div>
           )}
 
-          {/* Product grid */}
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-5 md:gap-7">
             {filteredProducts?.map(product => (
               <ProductCard
@@ -449,7 +394,6 @@ function HomePage() {
             ))}
           </div>
 
-          {/* Show More — only when not searching */}
           {hasMore && !effectiveSearch && (
             <div className="pt-12 flex justify-center">
               <button
@@ -458,19 +402,13 @@ function HomePage() {
                 className="group relative px-10 py-3.5 bg-black text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-full overflow-hidden transition-all duration-300 hover:pr-14 active:scale-95 disabled:opacity-50 shadow-lg"
               >
                 <span className="flex items-center gap-3">
-                  {isFetchingMore
-                    ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Loading...</>
-                    : 'Show More'
-                  }
+                  {isFetchingMore ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Loading...</> : 'Show More'}
                 </span>
-                {!isFetchingMore && (
-                  <span className="absolute right-0 top-0 h-full w-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">→</span>
-                )}
+                {!isFetchingMore && <span className="absolute right-0 top-0 h-full w-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">→</span>}
               </button>
             </div>
           )}
 
-          {/* Empty state */}
           {filteredProducts?.length === 0 && (
             <div className="text-center py-24 space-y-4">
               <div className="text-5xl opacity-20">🔍</div>
@@ -491,7 +429,6 @@ function HomePage() {
           )}
         </div>
       </div>
-
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </main>
   );

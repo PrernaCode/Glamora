@@ -1,3 +1,4 @@
+import { supabase } from '../../supabaseClient';
 import { getCartKey, syncCartItem, removeItemFromDB } from '../slices/cartSlice';
 
 // Middleware to persist cart to localStorage and Supabase
@@ -37,9 +38,7 @@ export const cartPersistenceMiddleware = (store) => (next) => (action) => {
     }
 
     if (action.type === 'cart/clearCart') {
-      import('../../supabaseClient').then(({ supabase }) => {
-        supabase.from('cart_items').delete().eq('user_id', userId).then();
-      });
+      supabase.from('cart_items').delete().eq('user_id', userId).then();
     }
   }
 

@@ -1,9 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import Hero from '../components/Landing/Hero';
-import Categories from '../components/Landing/Categories';
-import NewArrivals from '../components/Landing/NewArrivals';
-import BestSellers from '../components/Landing/BestSellers';
-import LandingFooter from '../components/Landing/LandingFooter';
+
+// Lazy load components that are not immediately visible
+const Categories = lazy(() => import('../components/Landing/Categories'));
+const NewArrivals = lazy(() => import('../components/Landing/NewArrivals'));
+const BestSellers = lazy(() => import('../components/Landing/BestSellers'));
+const LandingFooter = lazy(() => import('../components/Landing/LandingFooter'));
+
+// Simple loading placeholder for suspended components
+const SectionPlaceholder = () => <div className="h-40 animate-pulse bg-gray-50 rounded-3xl"></div>;
 
 const LandingPage = () => {
     useEffect(() => {
@@ -15,13 +20,23 @@ const LandingPage = () => {
             <Hero />
 
             <main className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 space-y-12 md:space-y-20">
-                <Categories />
-                <NewArrivals />
-                <BestSellers />
+                <Suspense fallback={<SectionPlaceholder />}>
+                    <Categories />
+                </Suspense>
+                
+                <Suspense fallback={<SectionPlaceholder />}>
+                    <NewArrivals />
+                </Suspense>
+
+                <Suspense fallback={<SectionPlaceholder />}>
+                    <BestSellers />
+                </Suspense>
             </main>
 
             <div className="mt-20 md:mt-32">
-                <LandingFooter />
+                <Suspense fallback={<div className="h-20" />}>
+                    <LandingFooter />
+                </Suspense>
             </div>
         </div>
     );

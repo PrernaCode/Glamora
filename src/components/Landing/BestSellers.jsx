@@ -2,38 +2,21 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetProductsQuery } from '../../redux/slices/productsApi';
-import { addToCart, syncCartItem } from '../../redux/slices/cartSlice';
-import { useToast } from '../../components/Toast';
+import { useCartActions } from '../../hooks/useCartActions';
 import cartGIcon from '../../assets/icons/cartG.svg';
 
 const BestSellers = () => {
-    const dispatch = useDispatch();
-    const { addToast } = useToast();
+    const { handleAddToCart: addToCartAction } = useCartActions();
     const { data: products, isLoading } = useGetProductsQuery();
     const user = useSelector(state => state.auth.user);
 
     // Filter for products with rating >= 4.5
     const featuredProducts = products?.filter(p => (p.rating?.rate ?? 0) >= 4.5).slice(0, 4) || [];
 
-    const handleAddToCart = async (e, product) => {
-        e.preventDefault(); // Stop default action (in case of button/form)
-        e.stopPropagation(); // Stop parent Link from navigating
-
-        // Normalize product data for cart
-        const cartItem = {
-            id: product.id,
-            title: product.title,
-            price: product.price,
-            image: product.images?.[0]
-        };
-
-        dispatch(addToCart(cartItem));
-
-        if (user?.id) {
-            await dispatch(syncCartItem({ item: cartItem }));
-        }
-
-        addToast(`${product.title} added to bag`, 'success');
+    const handleAddToCart = (e, product) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addToCartAction(product);
     };
 
     if (isLoading) return (
@@ -70,6 +53,7 @@ const BestSellers = () => {
                             <img
                                 src={product.images?.[0] || 'https://via.placeholder.com/400x533'}
                                 alt={product.title}
+                                loading="lazy"
                                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                             />
                             {/* Hover Overlay */}
