@@ -114,6 +114,10 @@ function CartPage() {
   };
 
   const handleUpdateQuantity = (id, newQuantity) => {
+    if (newQuantity > 10) {
+      addToast('Maximum limit (10) reached for this item', 'warning');
+      return;
+    }
     if (newQuantity > 0) dispatch(updateQuantity({ id, quantity: newQuantity }));
   };
 
