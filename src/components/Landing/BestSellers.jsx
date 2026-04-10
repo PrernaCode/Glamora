@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+
 import { useGetProductsQuery } from '../../redux/slices/productsApi';
 import { useCartActions } from '../../hooks/useCartActions';
 import cartGIcon from '../../assets/icons/cartG.svg';
@@ -8,7 +8,7 @@ import cartGIcon from '../../assets/icons/cartG.svg';
 const BestSellers = () => {
     const { handleAddToCart: addToCartAction } = useCartActions();
     const { data: products, isLoading } = useGetProductsQuery();
-    const user = useSelector(state => state.auth.user);
+
 
     // Filter for products with rating >= 4.5
     const featuredProducts = products?.filter(p => (p.rating?.rate ?? 0) >= 4.5).slice(0, 4) || [];

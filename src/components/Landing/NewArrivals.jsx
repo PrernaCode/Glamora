@@ -1,13 +1,13 @@
 import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+
 import { useGetProductsByCategoryQuery } from '../../redux/slices/productsApi';
 import { useCartActions } from '../../hooks/useCartActions';
 import cartGIcon from '../../assets/icons/cartG.svg';
 
 const NewArrivals = () => {
     const { handleAddToCart } = useCartActions();
-    const user = useSelector(state => state.auth.user);
+
     // Category ID 8 is New Arrivals
     const { data: products, isLoading, error } = useGetProductsByCategoryQuery({ categoryId: 8 });
     const scrollRef = useRef(null);

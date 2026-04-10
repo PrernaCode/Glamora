@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleWishlistItem } from '../redux/slices/wishlistSlice';
 import { useGetProductByIdQuery, useGetProductsByCategoryQuery } from '../redux/slices/productsApi';
-import { useToast } from '../components/Toast';
+
 import LoginModal from '../components/LoginModal';
 import { useCartActions } from '../hooks/useCartActions';
 import ProductImage from '../components/ProductImage';
@@ -79,7 +79,7 @@ function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { addToast } = useToast();
+
   const sliderRef = useRef(null);
   const { handleAddToCart } = useCartActions();
 
