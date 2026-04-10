@@ -3,8 +3,7 @@
 A high-performance, full-stack luxury e-commerce application built with **React 18** and **Supabase**, designed for a premium shopping experience with security and scalability at its core.
 
 🔗 **Links:**
-- **Live Demo:** [Demo Link](#)
-- **GitHub Repository:** [Source Code](#)
+- **Live Demo:** [https://glamora-store.vercel.app/]
 
 ---
 
@@ -186,8 +185,7 @@ npm run build
 ---
 
 ## 👤 Author
-**[your name]**
-- **GitHub:** [[your github url]](#)
+**[Prerna Sharma]**
 
 ---
 **Built with precision using React, Redux Toolkit, and Supabase.**
