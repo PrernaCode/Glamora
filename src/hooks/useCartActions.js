@@ -24,7 +24,7 @@ export const useCartActions = () => {
 
         // Normalize product data for cart
         const cartItem = {
-            id: product.id || product.product_id,
+            id: product.product_id || product.id,
             title: product.title || "Product",
             price: product.price || 0,
             image: product.image || (product.images && product.images[0]) || ""

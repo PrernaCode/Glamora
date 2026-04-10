@@ -87,12 +87,12 @@ export const syncCartItem = createAsyncThunk(
         .upsert({
           user_id: userId,
           product_id: item.id,
-          quantity: item.quantity,
+          quantity: item.quantity || 1,
           price_at_addition: item.price,
           title: item.title,
           image: item.image,
           // category_id is NOT in cart_items table — carry it in memory only
-        }, { onConflict: 'user_id, product_id' })
+        }, { onConflict: 'user_id,product_id' })
         .select()
         .single();
 
@@ -188,7 +188,7 @@ const cartSlice = createSlice({
       if (existingItem && quantity > 0) {
         const finalQuantity = Math.min(quantity, 10);
         const quantityDiff = finalQuantity - existingItem.quantity;
-        
+
         if (quantityDiff !== 0) {
           existingItem.quantity = finalQuantity;
           existingItem.totalPrice = existingItem.price * finalQuantity;
