@@ -54,7 +54,7 @@ function RelatedProductCard({ product, onAddToCart, onLoginRequired }) {
 
   return (
     <div className="pdp-related-card group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100/60 relative shrink-0 w-[280px] min-w-[280px] snap-start">
-      <button onClick={handleToggleWishlist} className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-all opacity-0 group-hover:opacity-100" aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}>
+      <button onClick={handleToggleWishlist} className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-all opacity-100" aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}>
         <img src={isWishlisted ? heartFilledIcon : heartOutlinedIcon} alt="wishlist" className="w-3.5 h-3.5" style={isWishlisted ? {} : { filter: 'invert(34%) sepia(84%) saturate(365%) hue-rotate(113deg) brightness(80%) contrast(95%)' }} />
       </button>
       <Link to={`/product/${product.id}`} className="block aspect-square overflow-hidden bg-gray-50">

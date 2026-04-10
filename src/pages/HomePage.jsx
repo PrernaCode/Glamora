@@ -34,7 +34,7 @@ const ProductCard = memo(({ product, onAddToCart, onLoginRequired }) => {
       {/* Wishlist button */}
       <button
         onClick={handleToggleWishlist}
-        className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+        className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-all opacity-100"
         aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
       >
         <img
@@ -119,7 +119,7 @@ const RatingFilter = ({ selectedRating, onSelect }) => {
 /* ─── HomePage ───────────────────────────────────────────────────────── */
 function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null); 
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedRating, setSelectedRating] = useState(null);
   const [priceMax, setPriceMax] = useState(600);
   const [page, setPage] = useState(0);
@@ -317,8 +317,11 @@ function HomePage() {
               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-black">Price</h3>
             </div>
             <div className="pl-4 space-y-3">
+              <label htmlFor="price-range" className="sr-only">Maximum price</label>
               <input
                 type="range"
+                id="price-range"
+                name="price_max"
                 min={0}
                 max={600}
                 step={10}
@@ -352,7 +355,10 @@ function HomePage() {
               Showing <span className="text-[#00674f]">{filteredProducts?.length || 0}</span> products
             </p>
             <div className="relative">
+              <label htmlFor="sort-products" className="sr-only">Sort products</label>
               <select
+                id="sort-products"
+                name="sort_by"
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
                 className="appearance-none pl-4 pr-9 py-2.5 bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00674f] transition-all hover:bg-[#111] shadow-md"

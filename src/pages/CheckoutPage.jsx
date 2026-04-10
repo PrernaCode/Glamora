@@ -176,42 +176,42 @@ function CheckoutPage() {
                   </div>
 
                   <div className="mb-5">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Full Name</label>
-                    <input {...register('fullName')} className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.fullName ? 'border-b-[#ef4444]' : ''}`} placeholder="Enter your full name" />
+                    <label htmlFor="co-fullName" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Full Name</label>
+                    <input id="co-fullName" {...register('fullName')} name="fullName" autoComplete="name" className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.fullName ? 'border-b-[#ef4444]' : ''}`} placeholder="Enter your full name" />
                     {errors.fullName && <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider">{errors.fullName.message}</p>}
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="mb-5">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Email Address</label>
-                      <input {...register('email')} className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.email ? 'border-b-[#ef4444]' : ''}`} placeholder="Email" />
+                      <label htmlFor="co-email" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Email Address</label>
+                      <input id="co-email" {...register('email')} name="email" autoComplete="email" className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.email ? 'border-b-[#ef4444]' : ''}`} placeholder="Email" />
                       {errors.email && <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider">{errors.email.message}</p>}
                     </div>
                     <div className="mb-5">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Phone Number</label>
-                      <input {...register('phone')} className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.phone ? 'border-b-[#ef4444]' : ''}`} placeholder="Phone" />
+                      <label htmlFor="co-phone" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Phone Number</label>
+                      <input id="co-phone" {...register('phone')} name="phone" autoComplete="tel" className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.phone ? 'border-b-[#ef4444]' : ''}`} placeholder="Phone" />
                       {errors.phone && <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider">{errors.phone.message}</p>}
                     </div>
                   </div>
 
                   <div className="mb-5">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Shipping Address</label>
-                    <input {...register('address')} className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.address ? 'border-b-[#ef4444]' : ''}`} placeholder="Street, building, etc." />
+                    <label htmlFor="co-address" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Shipping Address</label>
+                    <input id="co-address" {...register('address')} name="address" autoComplete="street-address" className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.address ? 'border-b-[#ef4444]' : ''}`} placeholder="Street, building, etc." />
                     {errors.address && <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider">{errors.address.message}</p>}
                   </div>
 
                   <div className="grid grid-cols-3 gap-6">
                     <div className="mb-5">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">City</label>
-                      <input {...register('city')} className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.city ? 'border-b-[#ef4444]' : ''}`} placeholder="City" />
+                      <label htmlFor="co-city" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">City</label>
+                      <input id="co-city" {...register('city')} name="city" autoComplete="address-level2" className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.city ? 'border-b-[#ef4444]' : ''}`} placeholder="City" />
                     </div>
                     <div className="mb-5">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">State</label>
-                      <input {...register('state')} className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.state ? 'border-b-[#ef4444]' : ''}`} placeholder="State" />
+                      <label htmlFor="co-state" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">State</label>
+                      <input id="co-state" {...register('state')} name="state" autoComplete="address-level1" className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.state ? 'border-b-[#ef4444]' : ''}`} placeholder="State" />
                     </div>
                     <div className="mb-5">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Pincode</label>
-                      <input {...register('pincode')} className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.pincode ? 'border-b-[#ef4444]' : ''}`} placeholder="Zip" />
+                      <label htmlFor="co-pincode" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Pincode</label>
+                      <input id="co-pincode" {...register('pincode')} name="pincode" autoComplete="postal-code" className={`w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black ${errors.pincode ? 'border-b-[#ef4444]' : ''}`} placeholder="Zip" />
                     </div>
                   </div>
 
@@ -276,18 +276,18 @@ function CheckoutPage() {
                   <h2 className="font-serif text-[1.75rem] mb-8 italic">Secure Payment</h2>
 
                   <div className="mb-5">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Card Number</label>
-                    <input className="w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black" placeholder="0000 0000 0000 0000" disabled />
+                    <label htmlFor="co-card" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Card Number</label>
+                    <input id="co-card" name="card" autoComplete="cc-number" className="w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black" placeholder="0000 0000 0000 0000" disabled />
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="mb-5">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Expiry Date</label>
-                      <input className="w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black" placeholder="MM / YY" disabled />
+                      <label htmlFor="co-exp" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">Expiry Date</label>
+                      <input id="co-exp" name="exp" autoComplete="cc-exp" className="w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black" placeholder="MM / YY" disabled />
                     </div>
                     <div className="mb-5">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">CVC / CVV</label>
-                      <input className="w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black" placeholder="000" disabled />
+                      <label htmlFor="co-cvc" className="block text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-2">CVC / CVV</label>
+                      <input id="co-cvc" name="cvc" autoComplete="cc-csc" className="w-full py-3 border-0 border-b border-[#eee] text-[15px] transition-colors duration-300 bg-transparent outline-none focus:border-black" placeholder="000" disabled />
                     </div>
                   </div>
 

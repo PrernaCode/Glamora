@@ -97,12 +97,14 @@ function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-1">
+              <label htmlFor="login-email" className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-1">
                 EMAIL ADDRESS
               </label>
               <input
                 type="email"
+                id="login-email"
                 name="email"
+                autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -113,14 +115,16 @@ function LoginPage() {
 
             <div className="relative">
               <div className="flex justify-between items-center mb-3 ml-1">
-                <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase">
+                <label htmlFor="login-password" className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase">
                   PASSWORD
                 </label>
               </div>
               <div className="relative group">
                 <input
                   type={showPassword ? "text" : "password"}
+                  id="login-password"
                   name="password"
+                  autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
                   required

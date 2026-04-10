@@ -131,10 +131,12 @@ function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-2">FULL NAME</label>
+              <label htmlFor="signup-name" className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-2">FULL NAME</label>
               <input
                 type="text"
+                id="signup-name"
                 name="name"
+                autoComplete="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -144,10 +146,12 @@ function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-2">EMAIL ADDRESS</label>
+              <label htmlFor="signup-email" className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-2">EMAIL ADDRESS</label>
               <input
                 type="email"
+                id="signup-email"
                 name="email"
+                autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -157,11 +161,13 @@ function SignupPage() {
             </div>
 
             <div className="relative">
-              <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-2">PASSWORD</label>
+              <label htmlFor="signup-password" className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-2">PASSWORD</label>
               <div className="relative group">
                 <input
                   type={showPassword ? "text" : "password"}
+                  id="signup-password"
                   name="password"
+                  autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -183,11 +189,13 @@ function SignupPage() {
             </div>
 
             <div className="relative">
-              <label className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-2">CONFIRM PASSWORD</label>
+              <label htmlFor="signup-confirm-password" className="block text-[10px] font-bold text-gray-500 tracking-[0.2em] uppercase mb-3 ml-2">CONFIRM PASSWORD</label>
               <div className="relative group">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
+                  id="signup-confirm-password"
                   name="confirmPassword"
+                  autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
